@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Contributor Stats for Cavan Images",
-  "short_name": "Cavan Stats",
+  "name": "__MSG_extName__",
+  "short_name": "__MSG_extShortName__",
   "version": "1.0.0",
-  "description": "Sales statistics for Cavan Images contributors: earnings by photo, shoot and month. Not affiliated with Cavan Images.",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -11,7 +12,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "Contributor Stats for Cavan Images",
+    "default_title": "__MSG_extName__",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png"

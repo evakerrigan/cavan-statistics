@@ -40,7 +40,12 @@
 
 **Category:** Productivity (или Tools)
 
-**Language:** English (основной), добавить Russian.
+**Language:** English (основной) и Russian. Русская версия страницы
+появляется в списке языков вверху вкладки **Store listing** после загрузки
+архива: в нём есть `_locales/ru` (название и краткое описание на русском —
+в `public/_locales/ru/messages.json`).
+
+**Русское название:** Статистика продаж для авторов Cavan Images
 
 ### Summary (до 132 символов)
 
