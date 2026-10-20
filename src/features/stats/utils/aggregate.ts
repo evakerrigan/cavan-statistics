@@ -35,7 +35,13 @@ export type ShootStat = {
   manualId: string | null;
   title: string;
   code: string | null;
+  /** When the submission was created (`cavan` only). */
   createdAt: string | null;
+  /**
+   * When the shoot went on sale: its first published file for a Cavan
+   * submission, otherwise the earliest go-live date of its sold images.
+   */
+  publishedAt: string | null;
   /** Unknown for manual shoots: only their sold images are known. */
   publishedCount: number | null;
   thumbUrl: string | null;
@@ -88,6 +94,12 @@ const addTo = (totals: PartnerTotals, key: string, amount: number) => {
 
 const latest = (a: string | null, b: string | null) =>
   !a ? b : !b ? a : a > b ? a : b;
+
+const earliest = (dates: (string | null)[]) =>
+  dates.reduce<string | null>(
+    (min, d) => (d && (!min || d < min) ? d : min),
+    null
+  );
 
 const dayDistance = (a: string | null, b: string | null) =>
   a && b
@@ -223,6 +235,7 @@ export const buildStats = (
     | 'title'
     | 'code'
     | 'createdAt'
+    | 'publishedAt'
     | 'publishedCount'
     | 'unsoldPhotos'
   >;
@@ -241,6 +254,9 @@ export const buildStats = (
     const revenue = round(shootPhotos.reduce((sum, p) => sum + p.revenue, 0));
     return {
       ...base,
+      publishedAt:
+        base.publishedAt ??
+        earliest(shootPhotos.map((p) => p.product.createdAt)),
       thumbUrl:
         shootPhotos[0]?.product.thumbUrl ??
         base.unsoldPhotos[0]?.thumbUrl ??
@@ -269,6 +285,7 @@ export const buildStats = (
         title: shoot.title,
         code: shoot.code,
         createdAt: shoot.createdAt,
+        publishedAt: earliest(shoot.photos.map((p) => p.publishedAt)),
         publishedCount: shoot.publishedCount,
         unsoldPhotos: shoot.photos.filter((p) => !soldItemIds.has(p.itemId)),
       },
@@ -287,7 +304,8 @@ export const buildStats = (
           manualId: manual.id,
           title: manual.title,
           code: null,
-          createdAt: manual.createdAt,
+          createdAt: null,
+          publishedAt: null,
           publishedCount: null,
           unsoldPhotos: [],
         },
@@ -307,6 +325,7 @@ export const buildStats = (
           title: 'Без съёмки',
           code: null,
           createdAt: null,
+          publishedAt: null,
           publishedCount: null,
           unsoldPhotos: [],
         },

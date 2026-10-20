@@ -145,7 +145,9 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
                   {p}
                 </th>
               ))}
-              <th className={styles.table__num}>Доход</th>
+              <th className={`${styles.table__num} ${styles.table__revenue}`}>
+                Доход
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -162,7 +164,7 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
                     </td>
                   ))}
                   <td
-                    className={`${styles.table__num} ${styles.table__strong}`}
+                    className={`${styles.table__num} ${styles.table__revenue}`}
                   >
                     {formatMoney(m.revenue)}
                   </td>

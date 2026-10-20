@@ -1,11 +1,11 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { ManualShoot } from '@/types/cavan';
-import { formatDate, formatMoney } from '@/utils/format';
+import { formatDate, formatDuration, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
 import { ShootDetails } from './shoot-details';
-import { SortHeader } from './sort-header';
+import { SortHeader, StackedSortHeader } from './sort-header';
 import styles from './table.module.scss';
 import shootStyles from './shoots-table.module.scss';
 
@@ -23,6 +23,19 @@ const subtitleOf = (shoot: ShootStat) => {
   return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
 };
 
+const StackRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) => (
+  <>
+    <span className={styles.table__stackLabel}>{label}</span>
+    <span className={styles.table__pairsValue}>{value}</span>
+  </>
+);
+
 export const ShootsTable = ({
   shoots,
   partners,
@@ -35,6 +48,11 @@ export const ShootsTable = ({
     () => ({
       title: (s) => s.title,
       createdAt: (s) => s.createdAt ?? '',
+      publishedAt: (s) => s.publishedAt ?? '',
+      onSale: (s) =>
+        s.publishedAt
+          ? Date.now() - new Date(s.publishedAt.slice(0, 10)).getTime()
+          : -1,
       published: (s) => s.publishedCount ?? -1,
       sold: (s) => s.photos.length,
       sales: (s) => s.salesCount,
@@ -55,7 +73,7 @@ export const ShootsTable = ({
     'revenue'
   );
   const header = { sortKey, direction, onSort: toggle };
-  const columnCount = 8 + partners.length;
+  const columnCount = 7 + partners.length;
 
   return (
     <div className={styles.tableWrap}>
@@ -64,20 +82,36 @@ export const ShootsTable = ({
           <tr>
             <th aria-label="Превью" />
             <SortHeader label="Съёмка" columnKey="title" {...header} />
-            <SortHeader label="Создана" columnKey="createdAt" {...header} />
-            <SortHeader
-              label="Опубл. фото"
-              columnKey="published"
-              numeric
+            <StackedSortHeader
+              columns={[
+                { label: 'Создана', columnKey: 'createdAt' },
+                { label: 'Опубликована', columnKey: 'publishedAt' },
+                { label: 'В продаже', columnKey: 'onSale' },
+              ]}
               {...header}
             />
-            <SortHeader
-              label="Продано фото"
-              columnKey="sold"
+            <StackedSortHeader
+              columns={[
+                { label: 'Опубл. фото', columnKey: 'published' },
+                { label: 'Продано фото', columnKey: 'sold' },
+              ]}
               numeric
               {...header}
             />
             <SortHeader label="Продаж" columnKey="sales" numeric {...header} />
+            <SortHeader
+              label="Доход"
+              columnKey="revenue"
+              numeric
+              className={styles.table__revenue}
+              {...header}
+            />
+            <SortHeader
+              label="На 1 фото"
+              columnKey="perPhoto"
+              numeric
+              {...header}
+            />
             {partners.map((p) => (
               <SortHeader
                 key={p}
@@ -87,13 +121,6 @@ export const ShootsTable = ({
                 {...header}
               />
             ))}
-            <SortHeader label="Доход" columnKey="revenue" numeric {...header} />
-            <SortHeader
-              label="На 1 фото"
-              columnKey="perPhoto"
-              numeric
-              {...header}
-            />
           </tr>
         </thead>
         <tbody>
@@ -137,21 +164,34 @@ export const ShootsTable = ({
                       {subtitleOf(shoot)}
                     </div>
                   </td>
-                  <td>{formatDate(shoot.createdAt)}</td>
-                  <td className={styles.table__num}>
-                    {shoot.publishedCount ?? '—'}
+                  <td>
+                    <div className={styles.table__pairs}>
+                      <StackRow
+                        label="создана"
+                        value={formatDate(shoot.createdAt)}
+                      />
+                      <StackRow
+                        label="опубл."
+                        value={formatDate(shoot.publishedAt)}
+                      />
+                      <StackRow
+                        label="в продаже"
+                        value={formatDuration(shoot.publishedAt)}
+                      />
+                    </div>
                   </td>
-                  <td className={styles.table__num}>{shoot.photos.length}</td>
+                  <td className={styles.table__num}>
+                    <div className={styles.table__pairs}>
+                      <StackRow
+                        label="опубл."
+                        value={shoot.publishedCount ?? '—'}
+                      />
+                      <StackRow label="продано" value={shoot.photos.length} />
+                    </div>
+                  </td>
                   <td className={styles.table__num}>{shoot.salesCount}</td>
-                  {partners.map((p) => (
-                    <td key={p} className={styles.table__num}>
-                      {shoot.byPartner[p]
-                        ? formatMoney(shoot.byPartner[p])
-                        : '—'}
-                    </td>
-                  ))}
                   <td
-                    className={`${styles.table__num} ${styles.table__strong}`}
+                    className={`${styles.table__num} ${styles.table__revenue}`}
                   >
                     {formatMoney(shoot.revenue)}
                   </td>
@@ -160,6 +200,13 @@ export const ShootsTable = ({
                       ? '—'
                       : formatMoney(shoot.revenuePerPhoto)}
                   </td>
+                  {partners.map((p) => (
+                    <td key={p} className={styles.table__num}>
+                      {shoot.byPartner[p]
+                        ? formatMoney(shoot.byPartner[p])
+                        : '—'}
+                    </td>
+                  ))}
                 </tr>
                 {isOpen && (
                   <tr>

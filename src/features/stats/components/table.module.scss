@@ -37,6 +37,7 @@
   }
 
   &__sort {
+    text-align: inherit;
     font-weight: inherit;
     color: inherit;
     font-size: inherit;
@@ -55,6 +56,10 @@
 
     &:hover td {
       background: $color-row-hover;
+    }
+
+    &:hover td.table__revenue {
+      background: $color-revenue-bg-hover;
     }
   }
 
@@ -79,12 +84,40 @@
     color: $color-text-muted;
   }
 
+  &__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  // Label/value pairs stacked in one cell: labels line up in one column,
+  // values in the next.
+  &__pairs {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    gap: 2px $spacing-sm;
+    align-items: baseline;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__pairsValue {
+    text-align: right;
+  }
+
+  &__stackLabel {
+    font-size: 12px;
+    color: $color-text-muted;
+  }
+
   &__link {
     color: $color-chart;
   }
 
-  &__strong {
+  // The «Доход» column: bold, on a soft green band so it stands out.
+  &__revenue {
     font-weight: 700;
+    background: $color-revenue-bg;
   }
 
   &__empty {
@@ -92,4 +125,12 @@
     text-align: center !important;
     color: $color-text-muted;
   }
+}
+
+.table__stack {
+  align-items: flex-start;
+}
+
+.table__num .table__stack {
+  align-items: flex-end;
 }

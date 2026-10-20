@@ -4,18 +4,20 @@
   width: 100%;
 }
 
+// Rows of content-sized tiles: totals first, partners on the second row.
 .tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: $spacing-md;
-  margin-bottom: $spacing-lg;
+  margin-bottom: $spacing-md;
 }
 
 .tile {
+  min-width: 120px;
   background: $color-surface;
   border: 1px solid $color-border;
   border-radius: 8px;
-  padding: $spacing-md;
+  padding: $spacing-md $spacing-lg $spacing-md $spacing-md;
 
   &__label {
     font-size: 12px;

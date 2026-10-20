@@ -98,6 +98,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                 label="Доход"
                 columnKey="revenue"
                 numeric
+                className={styles.table__revenue}
                 {...header}
               />
               <SortHeader
@@ -152,7 +153,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                     {photo.byPartner[p] ? formatMoney(photo.byPartner[p]) : '—'}
                   </td>
                 ))}
-                <td className={`${styles.table__num} ${styles.table__strong}`}>
+                <td className={`${styles.table__num} ${styles.table__revenue}`}>
                   {formatMoney(photo.revenue)}
                 </td>
                 <td className={styles.table__num}>

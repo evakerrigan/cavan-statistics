@@ -59,6 +59,9 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           <div className={styles.tile__label}>Съёмок</div>
           <div className={styles.tile__value}>{matchedShoots.length}</div>
         </div>
+      </div>
+
+      <div className={styles.tiles}>
         {stats.partners.map((p) => (
           <div key={p} className={styles.tile}>
             <div className={styles.tile__label}>{p}</div>
