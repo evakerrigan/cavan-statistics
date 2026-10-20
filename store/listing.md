@@ -32,6 +32,11 @@
 | `store/screenshots/05-mobile.png`         |                                    |
 | `store/promo-small-440x280.png`           | Small promo tile (440×280)         |
 
+Для русской версии страницы (**Localized screenshots**) — те же пять
+скриншотов с русским интерфейсом в `store/screenshots/ru/`.
+
+Все картинки — PNG без прозрачности (24-bit), как требует магазин.
+
 На скриншотах — фото из твоего портфолио, суммы продаж придуманы.
 
 ## Store listing
