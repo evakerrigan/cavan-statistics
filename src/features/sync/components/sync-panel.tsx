@@ -45,43 +45,36 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
   return (
     <section className={styles.syncPanel}>
       <div className={styles.syncPanel__row}>
-        <div>
-          <h1 className={styles.syncPanel__title}>Статистика Cavan от Евы</h1>
+        <h1 className={styles.syncPanel__title}>Статистика Cavan от Евы</h1>
+        <div className={styles.syncPanel__controls}>
+          <div className={styles.syncPanel__actions}>
+            {dataset && (
+              <Button
+                variant="secondary"
+                onClick={() => handleSync(true)}
+                disabled={!!progress || !canSync}
+              >
+                Полное обновление
+              </Button>
+            )}
+            <Button
+              onClick={() => handleSync(false)}
+              disabled={!!progress || !canSync}
+            >
+              {progress
+                ? 'Загружаю…'
+                : dataset
+                  ? 'Добавить новые месяцы'
+                  : 'Загрузить данные'}
+            </Button>
+          </div>
           <p className={styles.syncPanel__meta}>
             {syncedAt
               ? `Данные обновлены ${formatDate(syncedAt)} в ${new Date(syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
               : 'Данных пока нет — нажмите «Загрузить данные».'}
           </p>
         </div>
-        <div className={styles.syncPanel__actions}>
-          {dataset && (
-            <Button
-              variant="secondary"
-              onClick={() => handleSync(true)}
-              disabled={!!progress || !canSync}
-            >
-              Полное обновление
-            </Button>
-          )}
-          <Button
-            onClick={() => handleSync(false)}
-            disabled={!!progress || !canSync}
-          >
-            {progress
-              ? 'Загружаю…'
-              : dataset
-                ? 'Добавить новые месяцы'
-                : 'Загрузить данные'}
-          </Button>
-        </div>
       </div>
-      {dataset && !progress && (
-        <p className={styles.syncPanel__note}>
-          «Добавить новые месяцы» скачивает только новое: последние месяцы и
-          новые съёмки. «Полное обновление» заново скачивает всё — это дольше.
-        </p>
-      )}
-
       {!canSync && (
         <p className={styles.syncPanel__note}>
           Обновление работает только в установленном расширении.

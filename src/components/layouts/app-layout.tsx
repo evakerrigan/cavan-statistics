@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import styles from './app-layout.module.scss';
 
 const TELEGRAM_URL = 'https://t.me/EvaKerrigan';
@@ -15,6 +16,7 @@ export const AppLayout = () => {
           Telegram @EvaKerrigan
         </a>
       </footer>
+      <ScrollToTop />
     </div>
   );
 };
