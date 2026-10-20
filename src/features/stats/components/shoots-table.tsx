@@ -219,6 +219,7 @@ export const ShootsTable = ({
                     partners={partners}
                     byPartner={shoot.byPartner}
                     compact={compact}
+                    sortKey={sortKey}
                   />
                 </tr>
                 {isOpen && (

@@ -80,6 +80,12 @@
     color: $color-chart;
   }
 
+  // Values of the partner the table is sorted by.
+  &__sorted {
+    color: $color-chart !important;
+    font-weight: 600;
+  }
+
   &__clickable {
     cursor: pointer;
 
@@ -189,5 +195,15 @@
 
   .table__titleCell {
     max-width: 300px;
+  }
+}
+
+// 1024–1499px: partner names in the header wrap onto two lines
+// (e.g. «Plain / picture», «TopPhoto / Group») to keep their columns narrow.
+@media (min-width: $breakpoint-compact + 1) and (max-width: 1499px) {
+  .table th.table__partnerHead {
+    white-space: normal;
+    max-width: 84px;
+    line-height: 1.25;
   }
 }

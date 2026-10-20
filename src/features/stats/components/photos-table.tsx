@@ -168,6 +168,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                   partners={partners}
                   byPartner={photo.byPartner}
                   compact={compact}
+                  sortKey={sortKey}
                 />
                 <td className={styles.table__num}>
                   {formatDate(photo.lastSale)}

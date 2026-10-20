@@ -7,12 +7,18 @@ import styles from './table.module.scss';
 export const StackRow = ({
   label,
   value,
+  highlighted = false,
 }: {
   label: string;
   value: string | number;
-}) => (
-  <>
-    <span className={styles.table__stackLabel}>{label}</span>
-    <span className={styles.table__pairsValue}>{value}</span>
-  </>
-);
+  /** Marks the line the table is sorted by. */
+  highlighted?: boolean;
+}) => {
+  const mark = highlighted ? styles.table__sorted : '';
+  return (
+    <>
+      <span className={`${styles.table__stackLabel} ${mark}`}>{label}</span>
+      <span className={`${styles.table__pairsValue} ${mark}`}>{value}</span>
+    </>
+  );
+};

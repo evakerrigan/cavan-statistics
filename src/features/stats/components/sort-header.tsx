@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { SortDirection } from '../hooks/use-sort';
 import styles from './table.module.scss';
 
@@ -8,7 +9,7 @@ export type SortState = {
 };
 
 type SortHeaderProps = SortState & {
-  label: string;
+  label: ReactNode;
   columnKey: string;
   numeric?: boolean;
   className?: string;
@@ -20,7 +21,7 @@ const SortButton = ({
   sortKey,
   direction,
   onSort,
-}: SortState & { label: string; columnKey: string }) => {
+}: SortState & { label: ReactNode; columnKey: string }) => {
   const active = columnKey === sortKey;
   return (
     <button
@@ -28,7 +29,7 @@ const SortButton = ({
       className={`${styles.table__sort} ${active ? styles.table__sortActive : ''}`}
       onClick={() => onSort(columnKey)}
     >
-      {label}
+      <span>{label}</span>
       {/* The active column gets a big coloured arrow; others hint on hover. */}
       <span
         aria-hidden="true"
