@@ -29,3 +29,6 @@ coverage
 
 # Saved Cavan pages (personal data)
 samples
+
+# Packed extension for the Chrome Web Store
+release

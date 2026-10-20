@@ -3,6 +3,7 @@
 export const en = {
   'app.title': 'Cavan Statistics by Eva',
   'footer.author': 'Made by Eva. Questions and ideas:',
+  'footer.disclaimer': 'Not affiliated with Cavan Images.',
   'common.scrollTop': 'Back to top',
   'common.cancel': 'Cancel',
   'theme.toDark': 'Dark theme',
@@ -138,6 +139,7 @@ export type Messages = Record<MessageKey, string>;
 export const ru: Messages = {
   'app.title': 'Статистика Cavan от Евы',
   'footer.author': 'Автор — Ева. Вопросы и предложения:',
+  'footer.disclaimer': 'Не связано с Cavan Images.',
   'common.scrollTop': 'Наверх',
   'common.cancel': 'Отмена',
   'theme.toDark': 'Тёмная тема',

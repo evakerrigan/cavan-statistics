@@ -25,6 +25,11 @@
       color: $color-chart;
     }
   }
+
+  &__disclaimer {
+    margin-top: $spacing-xs;
+    font-size: 11px;
+  }
 }
 
 @media (max-width: 647px) {

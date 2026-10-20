@@ -17,6 +17,9 @@ export const AppLayout = () => {
         <a href={TELEGRAM_URL} target="_blank" rel="noreferrer">
           Telegram @EvaKerrigan
         </a>
+        <div className={styles.appLayout__disclaimer}>
+          {t('footer.disclaimer')}
+        </div>
       </footer>
       <ScrollToTop />
     </div>
