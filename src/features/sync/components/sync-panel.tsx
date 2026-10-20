@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { isExtensionContext } from '@/lib/cavan-client';
 import { saveDataset } from '@/lib/storage';
 import type { Dataset } from '@/types/cavan';
@@ -48,6 +49,7 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
         <h1 className={styles.syncPanel__title}>Статистика Cavan от Евы</h1>
         <div className={styles.syncPanel__controls}>
           <div className={styles.syncPanel__actions}>
+            <ThemeToggle />
             {dataset && (
               <Button
                 variant="secondary"

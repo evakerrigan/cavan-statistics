@@ -1,22 +1,24 @@
-// Цвета из дизайн-системы
+// Цвета из дизайн-системы. Сами значения для светлой и тёмной темы — в
+// themes.scss; здесь только ссылки на них, чтобы тема менялась на лету.
 
-$color-main-bg: #f7f7f7; // Светлый фон главной области
-$color-surface: #ffffff; // Карточки и таблицы
-$color-border: #e6e6e3; // Разделители, линии сетки
-$color-text: #0b0b0b;
-$color-text-secondary: #52514e;
-$color-text-muted: #8a8984;
-$color-accent: #0b0b0b; // Основные кнопки
-$color-accent-text: #ffffff;
-$color-chart: #2a78d6; // Столбцы графика
-$color-row-hover: #f3f3f1;
-$color-revenue-bg: #eef7f0; // Фон колонки «Доход»
-$color-revenue-bg-hover: #e3f1e6;
+$color-main-bg: var(--color-main-bg); // Фон главной области
+$color-surface: var(--color-surface); // Карточки и таблицы
+$color-border: var(--color-border); // Разделители, линии сетки
+$color-text: var(--color-text);
+$color-text-secondary: var(--color-text-secondary);
+$color-text-muted: var(--color-text-muted);
+$color-accent: var(--color-accent); // Основные кнопки
+$color-accent-text: var(--color-accent-text);
+$color-chart: var(--color-chart); // Столбцы графика, ссылки
+$color-row-hover: var(--color-row-hover);
+$color-revenue-bg: var(--color-revenue-bg); // Фон колонки «Доход»
+$color-revenue-bg-hover: var(--color-revenue-bg-hover);
+$color-overlay: var(--color-overlay); // Затемнение под модальным окном
 
 //стили ErrorBoundary
-$danger-color: #c24f59;
-$danger-color-bg: #fef2f3;
-$danger-color-dark: #672a30;
+$danger-color: var(--danger-color);
+$danger-color-bg: var(--danger-color-bg);
+$danger-color-dark: var(--danger-color-dark);
 
 // Типографика
 $font-family-base:
@@ -36,8 +38,8 @@ $spacing-lg: 24px;
 $spacing-xl: 32px;
 
 // Тени
-$box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-$box-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+$box-shadow: 0 2px 4px var(--shadow-color);
+$box-shadow-lg: 0 4px 8px var(--shadow-color-strong);
 
 // Breakpoints
 $breakpoint-sm: 576px;
