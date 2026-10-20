@@ -4,6 +4,7 @@ import {
   type BatchSummary,
   fetchCompletedBatchPage,
   fetchMonthSales,
+  fetchPortfolioSize,
   fetchProductHistory,
   fetchSalesOverview,
   fetchShoot,
@@ -43,6 +44,7 @@ export const collectDataset = async (
 
   try {
     const overview = await fetchSalesOverview(session);
+    const portfolioSize = await fetchPortfolioSize(session);
 
     // 1. Monthly sales.
     const months: MonthSales[] = [];
@@ -107,6 +109,7 @@ export const collectDataset = async (
       syncedAt: new Date().toISOString(),
       cavanTotal: overview.total,
       cavanDownloads: overview.downloads,
+      portfolioSize,
       shoots,
       products,
       months,

@@ -4,6 +4,7 @@ import type { MonthSales, Product, Shoot, ShootPhoto } from '@/types/cavan';
 // Endpoints and payloads mirror what cavanimages.com itself sends from the
 // Sales & Analytics and Submit Content pages.
 const SALES_URL = '/account/photographer/api/sales';
+const STATS_URL = '/account/photographer/api/stats';
 const BATCH_LIST_URL = '/account/ingest/api/list';
 const BATCH_FETCH_URL = '/account/ingest/api/fetch-batch';
 
@@ -20,6 +21,10 @@ type RawOverviewResponse = {
   has_sales: number;
   total_sales: number;
   total_downloads: number;
+};
+
+type RawStatsResponse = {
+  contributions_total?: number;
 };
 
 type RawMonthResponse = {
@@ -97,6 +102,12 @@ export const fetchSalesOverview = async (session: CavanSession) => {
     total: toAmount(data.total_sales ?? 0),
     downloads: data.total_downloads ?? 0,
   };
+};
+
+/** The contributor dashboard (`/account/home`): portfolio size. */
+export const fetchPortfolioSize = async (session: CavanSession) => {
+  const data = await session.post<RawStatsResponse>(STATS_URL, {});
+  return data.contributions_total ?? 0;
 };
 
 export const fetchMonthSales = async (

@@ -68,7 +68,12 @@ export type Stats = {
   revenue: number;
   salesCount: number;
   soldPhotos: number;
+  /** Portfolio size from Cavan, or the published files of known shoots. */
   publishedPhotos: number;
+  /** Revenue per image that sold at least once. */
+  revenuePerSoldPhoto: number | null;
+  /** Revenue per image in the whole portfolio. */
+  revenuePerPortfolioPhoto: number | null;
   partners: string[];
   photos: PhotoStat[];
   shoots: ShootStat[];
@@ -362,15 +367,21 @@ export const buildStats = (
   }
 
   const otherRevenue = round(otherSales.reduce((sum, s) => sum + s.amount, 0));
+  const revenue = round(months.reduce((sum, m) => sum + m.revenue, 0));
+  const soldPhotos = photos.filter((p) => p.sales.length).length;
+  const publishedPhotos =
+    dataset.portfolioSize ||
+    dataset.shoots.reduce((sum, s) => sum + s.publishedCount, 0);
 
   return {
-    revenue: round(months.reduce((sum, m) => sum + m.revenue, 0)),
+    revenue,
     salesCount: months.reduce((sum, m) => sum + m.salesCount, 0),
-    soldPhotos: photos.filter((p) => p.sales.length).length,
-    publishedPhotos: dataset.shoots.reduce(
-      (sum, s) => sum + s.publishedCount,
-      0
-    ),
+    soldPhotos,
+    publishedPhotos,
+    revenuePerSoldPhoto: soldPhotos ? round(revenue / soldPhotos) : null,
+    revenuePerPortfolioPhoto: publishedPhotos
+      ? round(revenue / publishedPhotos)
+      : null,
     partners: Object.keys(partnerTotals).sort(
       (a, b) => partnerTotals[b] - partnerTotals[a]
     ),

@@ -48,7 +48,6 @@ export const ShootsTable = ({
     () => ({
       title: (s) => s.title,
       createdAt: (s) => s.createdAt ?? '',
-      publishedAt: (s) => s.publishedAt ?? '',
       onSale: (s) =>
         s.publishedAt
           ? Date.now() - new Date(s.publishedAt.slice(0, 10)).getTime()
@@ -85,7 +84,6 @@ export const ShootsTable = ({
             <StackedSortHeader
               columns={[
                 { label: 'Создана', columnKey: 'createdAt' },
-                { label: 'Опубликована', columnKey: 'publishedAt' },
                 { label: 'В продаже', columnKey: 'onSale' },
               ]}
               {...header}
@@ -165,19 +163,9 @@ export const ShootsTable = ({
                     </div>
                   </td>
                   <td>
-                    <div className={styles.table__pairs}>
-                      <StackRow
-                        label="создана"
-                        value={formatDate(shoot.createdAt)}
-                      />
-                      <StackRow
-                        label="опубл."
-                        value={formatDate(shoot.publishedAt)}
-                      />
-                      <StackRow
-                        label="в продаже"
-                        value={formatDuration(shoot.publishedAt)}
-                      />
+                    <div className={styles.table__stack}>
+                      <span>{formatDate(shoot.createdAt)}</span>
+                      <span>{formatDuration(shoot.publishedAt)}</span>
                     </div>
                   </td>
                   <td className={styles.table__num}>

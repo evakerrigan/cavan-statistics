@@ -59,6 +59,22 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           <div className={styles.tile__label}>Съёмок</div>
           <div className={styles.tile__value}>{matchedShoots.length}</div>
         </div>
+        <div className={styles.tile}>
+          <div className={styles.tile__label}>Ср. доход с проданного фото</div>
+          <div className={styles.tile__value}>
+            {stats.revenuePerSoldPhoto === null
+              ? '—'
+              : formatMoney(stats.revenuePerSoldPhoto)}
+          </div>
+        </div>
+        <div className={styles.tile}>
+          <div className={styles.tile__label}>КПД на 1 фото портфеля</div>
+          <div className={styles.tile__value}>
+            {stats.revenuePerPortfolioPhoto === null
+              ? '—'
+              : formatMoney(stats.revenuePerPortfolioPhoto)}
+          </div>
+        </div>
       </div>
 
       <div className={styles.tiles}>

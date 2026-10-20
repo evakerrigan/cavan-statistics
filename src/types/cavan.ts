@@ -75,6 +75,11 @@ export type Dataset = {
   /** Lifetime earnings as reported by Cavan, used to check completeness. */
   cavanTotal: number;
   cavanDownloads: number;
+  /**
+   * Images in the portfolio, as on the Cavan dashboard. Missing in data
+   * synced before this field existed.
+   */
+  portfolioSize?: number;
   shoots: Shoot[];
   products: Product[];
   months: MonthSales[];
