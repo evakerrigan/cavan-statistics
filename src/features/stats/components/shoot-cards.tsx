@@ -6,7 +6,7 @@ import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import type { ShootStat } from '../utils/aggregate';
 import { partnerSortKey } from '../utils/partner-columns';
 import { partnerLabel, shootSubtitle, shootTitle } from '../utils/shoot-labels';
-import { CardStat } from './card-stat';
+import { CardStat, RevenueBox } from './card-stat';
 import { ShootDetails } from './shoot-details';
 import type { SortState } from './sort-header';
 import { SortBar } from './sort-bar';
@@ -101,14 +101,13 @@ export const ShootCards = ({
                       {shootSubtitle(shoot, t)}
                     </div>
                   </div>
-                </div>
-                <div className={cardStyles.card__stats}>
-                  <CardStat
+                  <RevenueBox
                     label={t('col.revenue')}
                     value={formatMoney(shoot.revenue)}
-                    revenue
                     highlighted={sorted('revenue')}
                   />
+                </div>
+                <div className={cardStyles.card__stats}>
                   <CardStat
                     label={t('shoots.col.perPhoto')}
                     value={
@@ -143,19 +142,25 @@ export const ShootCards = ({
                     value={formatDuration(shoot.publishedAt)}
                     highlighted={sorted('onSale')}
                   />
-                  {partners.map((p) => (
-                    <CardStat
-                      key={p}
-                      label={partnerLabel(p, t)}
-                      value={
-                        shoot.byPartner[p]
-                          ? formatMoney(shoot.byPartner[p])
-                          : '—'
-                      }
-                      highlighted={sorted(partnerSortKey(p))}
-                    />
-                  ))}
                 </div>
+                {partners.length > 0 && (
+                  <div
+                    className={`${cardStyles.card__stats} ${cardStyles.card__partners}`}
+                  >
+                    {partners.map((p) => (
+                      <CardStat
+                        key={p}
+                        label={partnerLabel(p, t)}
+                        value={
+                          shoot.byPartner[p]
+                            ? formatMoney(shoot.byPartner[p])
+                            : '—'
+                        }
+                        highlighted={sorted(partnerSortKey(p))}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
               {isOpen && (
                 <div className={cardStyles.card__details}>

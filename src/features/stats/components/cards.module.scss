@@ -42,13 +42,15 @@
 .cards {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
+  gap: 12px;
 }
 
+// A clear edge and a soft shadow, so cards stand apart from the page.
 .card {
   background: $color-surface;
-  border: 1px solid $color-border;
-  border-radius: 8px;
+  border: 1px solid $color-card-border;
+  border-radius: 10px;
+  box-shadow: $box-shadow;
   overflow: hidden;
 
   &__head {
@@ -67,6 +69,7 @@
   }
 
   &__text {
+    flex: 1;
     min-width: 0;
   }
 
@@ -75,6 +78,12 @@
     grid-template-columns: 1fr 1fr;
     gap: $spacing-sm $spacing-md;
     padding: 0 $spacing-md $spacing-md;
+  }
+
+  // Partner amounts, set apart from the main stats by a line.
+  &__partners {
+    border-top: 1px solid $color-border;
+    padding-top: $spacing-sm;
   }
 
   &__details {
@@ -104,15 +113,37 @@
   }
 }
 
-.statRevenue {
-  grid-column: 1 / -1;
-  padding: $spacing-sm $spacing-md;
-  margin: 0 (-$spacing-md);
+// Revenue square on the right of the card's top row, as tall as the preview.
+.revenueBox {
+  flex-shrink: 0;
+  min-width: 56px;
+  height: 56px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 6px;
   background: $color-revenue-bg;
+  white-space: nowrap;
 
-  .stat__value {
+  &__label {
+    font-size: 10px;
+    color: $color-text-muted;
+  }
+
+  &__value {
+    font-size: 13px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.revenueBoxSorted {
+  .revenueBox__label,
+  .revenueBox__value {
+    color: $color-chart;
   }
 }
 

@@ -4,7 +4,7 @@ import { formatDate, formatMoney } from '@/utils/format';
 import type { PhotoStat } from '../utils/aggregate';
 import { partnerSortKey } from '../utils/partner-columns';
 import { partnerLabel } from '../utils/shoot-labels';
-import { CardStat } from './card-stat';
+import { CardStat, RevenueBox } from './card-stat';
 import type { SortState } from './sort-header';
 import { SortBar } from './sort-bar';
 import cardStyles from './cards.module.scss';
@@ -80,14 +80,13 @@ export const PhotoCards = ({
                   {photo.product.headline}
                 </div>
               </div>
-            </div>
-            <div className={cardStyles.card__stats}>
-              <CardStat
+              <RevenueBox
                 label={t('col.revenue')}
                 value={formatMoney(photo.revenue)}
-                revenue
                 highlighted={sorted('revenue')}
               />
+            </div>
+            <div className={cardStyles.card__stats}>
               <CardStat
                 label={t('col.sales')}
                 value={photo.sales.length}
@@ -103,17 +102,23 @@ export const PhotoCards = ({
                 value={shootTitleOf(photo)}
                 highlighted={sorted('shoot')}
               />
-              {partners.map((p) => (
-                <CardStat
-                  key={p}
-                  label={partnerLabel(p, t)}
-                  value={
-                    photo.byPartner[p] ? formatMoney(photo.byPartner[p]) : '—'
-                  }
-                  highlighted={sorted(partnerSortKey(p))}
-                />
-              ))}
             </div>
+            {partners.length > 0 && (
+              <div
+                className={`${cardStyles.card__stats} ${cardStyles.card__partners}`}
+              >
+                {partners.map((p) => (
+                  <CardStat
+                    key={p}
+                    label={partnerLabel(p, t)}
+                    value={
+                      photo.byPartner[p] ? formatMoney(photo.byPartner[p]) : '—'
+                    }
+                    highlighted={sorted(partnerSortKey(p))}
+                  />
+                ))}
+              </div>
+            )}
           </article>
         ))}
       </div>
