@@ -57,3 +57,16 @@ export const loadShootMerges = async () =>
 
 export const saveShootMerges = (merges: ShootMerges) =>
   write(SHOOT_MERGES_KEY, merges);
+
+/**
+ * Removes everything the extension keeps in this browser: synced data, the
+ * user's own shoots, names and joins, and the theme / language choice.
+ */
+export const clearAllData = async (): Promise<void> => {
+  if (hasChromeStorage()) await chrome.storage.local.clear();
+  try {
+    localStorage.clear();
+  } catch {
+    // Nothing stored there, or storage unavailable.
+  }
+};

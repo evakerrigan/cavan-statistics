@@ -1,5 +1,6 @@
+import { ToggleButton } from '@/components/ui/toggle-button';
+import { useI18n } from '@/hooks/use-i18n';
 import { useTheme } from '@/hooks/use-theme';
-import styles from './theme-toggle.module.scss';
 
 const MoonIcon = () => (
   <svg
@@ -39,16 +40,13 @@ const SunIcon = () => (
 /** Switches between the light and dark theme: a moon in light, a sun in dark. */
 export const ThemeToggle = () => {
   const { theme, toggle } = useTheme();
-  const label = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+  const { t } = useI18n();
   return (
-    <button
-      type="button"
-      className={styles.themeToggle}
+    <ToggleButton
+      label={theme === 'dark' ? t('theme.toLight') : t('theme.toDark')}
       onClick={toggle}
-      aria-label={label}
-      title={label}
     >
       {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-    </button>
+    </ToggleButton>
   );
 };

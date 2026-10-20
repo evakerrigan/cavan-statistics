@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
 import styles from './scroll-to-top.module.scss';
 
 // Shown once the page is scrolled further than this.
@@ -6,6 +7,7 @@ const SHOW_AFTER_PX = 400;
 
 /** A floating «back to top» arrow in the bottom-right corner. */
 export const ScrollToTop = () => {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -22,8 +24,8 @@ export const ScrollToTop = () => {
       type="button"
       className={styles.scrollToTop}
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      aria-label="Наверх"
-      title="Наверх"
+      aria-label={t('common.scrollTop')}
+      title={t('common.scrollTop')}
     >
       <svg
         width="20"

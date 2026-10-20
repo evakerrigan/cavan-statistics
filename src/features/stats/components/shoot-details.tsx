@@ -1,6 +1,7 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
+import { useI18n } from '@/hooks/use-i18n';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import type { ManualShoot, ShootPhoto } from '@/types/cavan';
 import { formatDate, formatMoney } from '@/utils/format';
@@ -39,49 +40,58 @@ const byFileName = (a: PhotoStat, b: PhotoStat) =>
     numeric: true,
   });
 
-const SoldCard = ({ photo }: { photo: PhotoStat }) => (
-  <a
-    href={productUrl(photo.product.id)}
-    target="_blank"
-    rel="noreferrer"
-    className={styles.card}
-  >
-    <img
-      src={photo.product.thumbUrl}
-      alt={photo.product.headline}
-      loading="lazy"
-      className={styles.card__image}
-    />
-    <div className={styles.card__info}>
-      <span>{photo.product.id}</span>
-      <strong>{formatMoney(photo.revenue)}</strong>
-    </div>
-    <div className={styles.card__meta}>
-      {photo.sales.length} прод. · посл. {formatDate(photo.lastSale)}
-    </div>
-  </a>
-);
-
-const UnsoldCard = ({ photo }: { photo: ShootPhoto }) => (
-  <div className={`${styles.card} ${styles.cardUnsold}`}>
-    {photo.thumbUrl ? (
+const SoldCard = ({ photo }: { photo: PhotoStat }) => {
+  const { t } = useI18n();
+  return (
+    <a
+      href={productUrl(photo.product.id)}
+      target="_blank"
+      rel="noreferrer"
+      className={styles.card}
+    >
       <img
-        src={photo.thumbUrl}
-        alt={photo.headline ?? ''}
+        src={photo.product.thumbUrl}
+        alt={photo.product.headline}
         loading="lazy"
         className={styles.card__image}
       />
-    ) : (
-      <div className={styles.card__image} />
-    )}
-    <div className={styles.card__info}>
-      <span className={styles.card__file} title={photo.fileName}>
-        {photo.fileName}
-      </span>
+      <div className={styles.card__info}>
+        <span>{photo.product.id}</span>
+        <strong>{formatMoney(photo.revenue)}</strong>
+      </div>
+      <div className={styles.card__meta}>
+        {t('details.soldMeta', {
+          n: photo.sales.length,
+          date: formatDate(photo.lastSale),
+        })}
+      </div>
+    </a>
+  );
+};
+
+const UnsoldCard = ({ photo }: { photo: ShootPhoto }) => {
+  const { t } = useI18n();
+  return (
+    <div className={`${styles.card} ${styles.cardUnsold}`}>
+      {photo.thumbUrl ? (
+        <img
+          src={photo.thumbUrl}
+          alt={photo.headline ?? ''}
+          loading="lazy"
+          className={styles.card__image}
+        />
+      ) : (
+        <div className={styles.card__image} />
+      )}
+      <div className={styles.card__info}>
+        <span className={styles.card__file} title={photo.fileName}>
+          {photo.fileName}
+        </span>
+      </div>
+      <div className={styles.card__meta}>{t('details.notSold')}</div>
     </div>
-    <div className={styles.card__meta}>Не продавалось</div>
-  </div>
-);
+  );
+};
 
 type RenameFormProps = {
   title: string;
@@ -97,6 +107,7 @@ const RenameForm = ({
   allowEmpty = false,
   children,
 }: RenameFormProps) => {
+  const { t } = useI18n();
   const [value, setValue] = useState(title);
   const trimmed = value.trim();
   return (
@@ -105,8 +116,8 @@ const RenameForm = ({
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        aria-label="Название съёмки"
-        placeholder="Название съёмки"
+        aria-label={t('details.shootName')}
+        placeholder={t('details.shootName')}
         className={styles.input}
       />
       <Button
@@ -114,7 +125,7 @@ const RenameForm = ({
         onClick={() => onRename(trimmed)}
         disabled={trimmed === title || (!trimmed && !allowEmpty)}
       >
-        Переименовать
+        {t('details.rename')}
       </Button>
       {children}
     </div>
@@ -139,6 +150,7 @@ const MergeForm = ({
   ShootDetailsProps,
   'shoot' | 'shoots' | 'onMergeShoot' | 'onUnmergeShoot'
 >) => {
+  const { t } = useI18n();
   const [sourceKey, setSourceKey] = useState('');
   const candidates = shoots
     .filter((s) => isMergeable(s) && s.key !== shoot.key)
@@ -154,14 +166,14 @@ const MergeForm = ({
         <select
           value={sourceKey}
           onChange={(e) => setSourceKey(e.target.value)}
-          aria-label="Съёмка, которую присоединить"
+          aria-label={t('details.joinLabel')}
           className={styles.input}
         >
-          <option value="">Присоединить к этой съёмке…</option>
+          <option value="">{t('details.joinPlaceholder')}</option>
           {candidates.map((s) => (
             <option key={s.key} value={s.key}>
               {s.title} · {formatDate(s.publishedAt ?? s.createdAt)} ·{' '}
-              {s.publishedCount ?? '?'} фото
+              {t('details.photosCount', { n: s.publishedCount ?? '?' })}
             </option>
           ))}
         </select>
@@ -173,12 +185,12 @@ const MergeForm = ({
           }}
           disabled={!sourceKey}
         >
-          Присоединить
+          {t('details.join')}
         </Button>
       </div>
       {shoot.mergedFrom.length > 0 && (
         <div className={styles.merged}>
-          <span className={styles.merged__label}>Присоединены:</span>
+          <span className={styles.merged__label}>{t('details.joined')}</span>
           {shoot.mergedFrom.map((m) => (
             <span key={m.key} className={styles.merged__chip}>
               {m.title}
@@ -187,7 +199,7 @@ const MergeForm = ({
                 className={styles.merged__remove}
                 onClick={() => onUnmergeShoot(m.key)}
               >
-                Отсоединить
+                {t('details.unjoin')}
               </button>
             </span>
           ))}
@@ -207,44 +219,44 @@ const CavanShootPhotos = ({
 }: Pick<
   ShootDetailsProps,
   'shoot' | 'onRenameShoot' | 'shoots' | 'onMergeShoot' | 'onUnmergeShoot'
->) => (
-  <div>
-    <MergeForm
-      shoot={shoot}
-      shoots={shoots}
-      onMergeShoot={onMergeShoot}
-      onUnmergeShoot={onUnmergeShoot}
-    />
-    {shoot.kind === 'legacy' && (
-      <>
-        <p className={styles.hint}>
-          Старая съёмка: в Submit Content её нет, плагин собрал её по данным
-          портфолио. Дайте ей понятное название — пустое вернёт код съёмки.
-        </p>
-        <RenameForm
-          title={shoot.title === shoot.code ? '' : shoot.title}
-          onRename={(title) => onRenameShoot(shoot.key, title)}
-          allowEmpty
-        />
-      </>
-    )}
-    {!shoot.photos.length && !shoot.unsoldPhotos.length ? (
-      <p className={styles.empty}>В этой съёмке нет опубликованных фото.</p>
-    ) : (
-      <div className={styles.grid}>
-        {shoot.photos.map((photo) => (
-          <SoldCard key={photo.product.id} photo={photo} />
-        ))}
-        {shoot.unsoldPhotos.map((photo) => (
-          <UnsoldCard key={photo.itemId} photo={photo} />
-        ))}
-      </div>
-    )}
-  </div>
-);
+>) => {
+  const { t } = useI18n();
+  return (
+    <div>
+      <MergeForm
+        shoot={shoot}
+        shoots={shoots}
+        onMergeShoot={onMergeShoot}
+        onUnmergeShoot={onUnmergeShoot}
+      />
+      {shoot.kind === 'legacy' && (
+        <>
+          <p className={styles.hint}>{t('details.legacyHint')}</p>
+          <RenameForm
+            title={shoot.title === shoot.code ? '' : shoot.title}
+            onRename={(title) => onRenameShoot(shoot.key, title)}
+            allowEmpty
+          />
+        </>
+      )}
+      {!shoot.photos.length && !shoot.unsoldPhotos.length ? (
+        <p className={styles.empty}>{t('details.noPhotos')}</p>
+      ) : (
+        <div className={styles.grid}>
+          {shoot.photos.map((photo) => (
+            <SoldCard key={photo.product.id} photo={photo} />
+          ))}
+          {shoot.unsoldPhotos.map((photo) => (
+            <UnsoldCard key={photo.itemId} photo={photo} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 /**
- * «Без съёмки» and the user's own shoots: images can be ticked and moved into
+ * «No shoot» and the user's own shoots: images can be ticked and moved into
  * a new or existing hand-made shoot, or taken out of one.
  */
 const EditableShootPhotos = ({
@@ -252,6 +264,7 @@ const EditableShootPhotos = ({
   manualShoots,
   onManualShootsChange,
 }: ShootDetailsProps) => {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [query, setQuery] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -317,17 +330,13 @@ const EditableShootPhotos = ({
   return (
     <div>
       {shoot.kind === 'unmatched' && (
-        <p className={styles.hint}>
-          Отметьте фото одной съёмки и соберите их в свою съёмку. Фото
-          отсортированы по имени файла, так кадры одной съёмки обычно идут
-          подряд.
-        </p>
+        <p className={styles.hint}>{t('details.unmatchedHint')}</p>
       )}
 
       {shoot.kind === 'manual' && (
         <RenameForm title={shoot.title} onRename={handleRename}>
           <Button variant="secondary" onClick={() => setConfirmDelete(true)}>
-            Удалить съёмку
+            {t('details.deleteShoot')}
           </Button>
         </RenameForm>
       )}
@@ -337,20 +346,24 @@ const EditableShootPhotos = ({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Фильтр по ID, имени файла или описанию"
+          placeholder={t('details.filter')}
           className={styles.input}
         />
         <Button variant="secondary" onClick={selectVisible}>
-          Выбрать все{query ? ' найденные' : ''} ({visible.length})
+          {t(query ? 'details.selectFound' : 'details.selectAll', {
+            n: visible.length,
+          })}
         </Button>
         <Button
           variant="secondary"
           onClick={() => setSelected(new Set())}
           disabled={!selectedIds.length}
         >
-          Снять выбор
+          {t('details.clear')}
         </Button>
-        <span className={styles.count}>Выбрано: {selectedIds.length}</span>
+        <span className={styles.count}>
+          {t('details.selected', { n: selectedIds.length })}
+        </span>
       </div>
 
       {shoot.kind === 'unmatched' && (
@@ -359,14 +372,14 @@ const EditableShootPhotos = ({
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Название новой съёмки"
+            placeholder={t('details.newShootName')}
             className={styles.input}
           />
           <Button
             onClick={handleCreate}
             disabled={!selectedIds.length || !newTitle.trim()}
           >
-            Создать съёмку
+            {t('details.create')}
           </Button>
         </div>
       )}
@@ -377,10 +390,10 @@ const EditableShootPhotos = ({
             <select
               value={targetId}
               onChange={(e) => setTargetId(e.target.value)}
-              aria-label="Своя съёмка"
+              aria-label={t('details.ownShoot')}
               className={styles.input}
             >
-              <option value="">Выберите свою съёмку…</option>
+              <option value="">{t('details.ownPlaceholder')}</option>
               {otherManualShoots.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.title}
@@ -392,7 +405,9 @@ const EditableShootPhotos = ({
               onClick={handleMove}
               disabled={!selectedIds.length || !target}
             >
-              {shoot.kind === 'manual' ? 'Перенести туда' : 'Добавить в съёмку'}
+              {shoot.kind === 'manual'
+                ? t('details.moveThere')
+                : t('details.addToShoot')}
             </Button>
           </div>
         )}
@@ -404,7 +419,7 @@ const EditableShootPhotos = ({
             onClick={handleRemove}
             disabled={!selectedIds.length}
           >
-            Убрать выбранные из съёмки
+            {t('details.removeSelected')}
           </Button>
         </div>
       )}
@@ -446,23 +461,25 @@ const EditableShootPhotos = ({
             </label>
           );
         })}
-        {!visible.length && <p className={styles.empty}>Ничего не найдено.</p>}
+        {!visible.length && (
+          <p className={styles.empty}>{t('details.nothingFound')}</p>
+        )}
       </div>
 
       <Modal
         isOpen={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title={`Удалить съёмку «${shoot.title}»?`}
+        title={t('details.deleteTitle', { title: shoot.title })}
         footer={
           <>
             <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
-              Отмена
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleDelete}>Удалить</Button>
+            <Button onClick={handleDelete}>{t('details.delete')}</Button>
           </>
         }
       >
-        Фото из неё вернутся в «Без съёмки». Продажи не пропадут.
+        {t('details.deleteBody')}
       </Modal>
     </div>
   );

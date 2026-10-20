@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import { formatDate, formatMoney } from '@/utils/format';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
@@ -7,6 +8,7 @@ import {
   type ShootStat,
   UNMATCHED_KEY,
 } from '../utils/aggregate';
+import { partnerLabel, shootTitle } from '../utils/shoot-labels';
 import { SortHeader } from './sort-header';
 import styles from './table.module.scss';
 import photoStyles from './photos-table.module.scss';
@@ -18,11 +20,12 @@ type PhotosTableProps = {
 };
 
 export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
+  const { t } = useI18n();
   const [query, setQuery] = useState('');
 
   const shootTitles = useMemo(
-    () => new Map(shoots.map((s) => [s.key, s.title])),
-    [shoots]
+    () => new Map(shoots.map((s) => [s.key, shootTitle(s, t)])),
+    [shoots, t]
   );
   const titleOf = (photo: PhotoStat) =>
     shootTitles.get(photo.shootKey ?? UNMATCHED_KEY) ?? '—';
@@ -69,18 +72,26 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Поиск по ID, имени файла, описанию или съёмке"
+        placeholder={t('photos.search')}
         className={photoStyles.search}
       />
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th aria-label="Превью" />
-              <SortHeader label="Фото" columnKey="id" {...header} />
-              <SortHeader label="Съёмка" columnKey="shoot" {...header} />
+              <th aria-label={t('col.preview')} />
               <SortHeader
-                label="Продаж"
+                label={t('photos.col.photo')}
+                columnKey="id"
+                {...header}
+              />
+              <SortHeader
+                label={t('col.shoot')}
+                columnKey="shoot"
+                {...header}
+              />
+              <SortHeader
+                label={t('col.sales')}
                 columnKey="sales"
                 numeric
                 {...header}
@@ -88,21 +99,21 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
               {partners.map((p) => (
                 <SortHeader
                   key={p}
-                  label={p}
+                  label={partnerLabel(p, t)}
                   columnKey={`partner:${p}`}
                   numeric
                   {...header}
                 />
               ))}
               <SortHeader
-                label="Доход"
+                label={t('col.revenue')}
                 columnKey="revenue"
                 numeric
                 className={styles.table__revenue}
                 {...header}
               />
               <SortHeader
-                label="Посл. продажа"
+                label={t('photos.col.lastSale')}
                 columnKey="lastSale"
                 numeric
                 {...header}
@@ -116,7 +127,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                   colSpan={6 + partners.length}
                   className={styles.table__empty}
                 >
-                  {query ? 'Ничего не найдено.' : 'Продаж пока нет.'}
+                  {query ? t('details.nothingFound') : t('photos.empty')}
                 </td>
               </tr>
             )}

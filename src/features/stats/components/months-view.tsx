@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
+import type { MessageKey } from '@/lib/i18n';
 import { formatMoney, formatMonth, formatMonthShort } from '@/utils/format';
 import type { MonthStat } from '../utils/aggregate';
+import { partnerLabel } from '../utils/shoot-labels';
 import styles from './table.module.scss';
 import chartStyles from './months-view.module.scss';
 
@@ -9,11 +12,11 @@ type MonthsViewProps = {
   partners: string[];
 };
 
-const RANGES = [
-  { label: '12 мес', count: 12 },
-  { label: '24 мес', count: 24 },
-  { label: 'Всё время', count: Infinity },
-] as const;
+const RANGES: { label: MessageKey; count: number }[] = [
+  { label: 'months.range12', count: 12 },
+  { label: 'months.range24', count: 24 },
+  { label: 'months.all', count: Infinity },
+];
 
 const monthKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -47,6 +50,7 @@ const niceTicks = (max: number) => {
 };
 
 export const MonthsView = ({ months, partners }: MonthsViewProps) => {
+  const { t } = useI18n();
   const [range, setRange] = useState<number>(24);
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -62,8 +66,12 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
   return (
     <>
       <div className={chartStyles.toolbar}>
-        <h2 className={chartStyles.title}>Доход по месяцам</h2>
-        <div className={chartStyles.ranges} role="group" aria-label="Период">
+        <h2 className={chartStyles.title}>{t('months.title')}</h2>
+        <div
+          className={chartStyles.ranges}
+          role="group"
+          aria-label={t('months.period')}
+        >
           {RANGES.map((r) => (
             <button
               key={r.label}
@@ -72,7 +80,7 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
               aria-pressed={range === r.count}
               onClick={() => setRange(r.count)}
             >
-              {r.label}
+              {t(r.label)}
             </button>
           ))}
         </div>
@@ -80,13 +88,13 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
 
       <div className={chartStyles.chart}>
         <div className={chartStyles.plot}>
-          {ticks.map((t) => (
+          {ticks.map((tick) => (
             <div
-              key={t}
+              key={tick}
               className={chartStyles.gridline}
-              style={{ bottom: `${(t / axisMax) * 100}%` }}
+              style={{ bottom: `${(tick / axisMax) * 100}%` }}
             >
-              <span className={chartStyles.tick}>${t}</span>
+              <span className={chartStyles.tick}>${tick}</span>
             </div>
           ))}
           <div className={chartStyles.columns}>
@@ -106,13 +114,13 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
                     <strong>{formatMonth(m.key)}</strong>
                     <div>{formatMoney(m.revenue)}</div>
                     <div className={chartStyles.tooltipMuted}>
-                      продаж: {m.salesCount}
+                      {t('months.tooltipSales', { n: m.salesCount })}
                     </div>
                     {partners
                       .filter((p) => m.byPartner[p])
                       .map((p) => (
                         <div key={p} className={chartStyles.tooltipMuted}>
-                          {p}: {formatMoney(m.byPartner[p])}
+                          {partnerLabel(p, t)}: {formatMoney(m.byPartner[p])}
                         </div>
                       ))}
                   </div>
@@ -138,15 +146,15 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Месяц</th>
-              <th className={styles.table__num}>Продаж</th>
+              <th>{t('months.col.month')}</th>
+              <th className={styles.table__num}>{t('col.sales')}</th>
               {partners.map((p) => (
                 <th key={p} className={styles.table__num}>
-                  {p}
+                  {partnerLabel(p, t)}
                 </th>
               ))}
               <th className={`${styles.table__num} ${styles.table__revenue}`}>
-                Доход
+                {t('col.revenue')}
               </th>
             </tr>
           </thead>

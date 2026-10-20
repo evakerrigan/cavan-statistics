@@ -37,6 +37,9 @@
   }
 
   &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     text-align: inherit;
     font-weight: inherit;
     color: inherit;
@@ -45,10 +48,31 @@
     &:hover {
       color: $color-text;
     }
+
+    &:hover .table__sortHint {
+      opacity: 1;
+    }
+  }
+
+  // Arrow on the column the table is sorted by.
+  &__sortArrow {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    color: $color-chart;
+  }
+
+  // Faint arrow on other sortable columns, shown on hover.
+  &__sortHint {
+    font-size: 13px;
+    line-height: 1;
+    color: $color-text-muted;
+    opacity: 0;
+    transition: opacity 0.15s ease;
   }
 
   &__sortActive {
-    color: $color-text;
+    color: $color-chart;
   }
 
   &__clickable {

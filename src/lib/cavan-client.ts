@@ -13,12 +13,21 @@ const CAVAN_TAB_URL = `${CAVAN_ORIGIN}/account/reporting/sales`;
 const REQUEST_DELAY_MIN_MS = 1000;
 const REQUEST_DELAY_MAX_MS = 2000;
 
+/** Cavan returned no data — usually the user is not logged in. */
 export class CavanAuthError extends Error {
   constructor() {
-    super(
-      'Cavan не вернул данные. Проверьте, что вы вошли в аккаунт на cavanimages.com.'
-    );
+    super('Cavan returned no data: not logged in at cavanimages.com?');
     this.name = 'CavanAuthError';
+  }
+}
+
+export class CavanHttpError extends Error {
+  readonly status: number;
+
+  constructor(status: number, path: string) {
+    super(`Cavan responded with ${status} to ${path}`);
+    this.name = 'CavanHttpError';
+    this.status = status;
   }
 }
 
@@ -107,7 +116,7 @@ export const openCavanSession = async (): Promise<CavanSession> => {
       throw new CavanAuthError();
     }
     if (result.status >= 400) {
-      throw new Error(`Cavan ответил ошибкой ${result.status} на ${path}`);
+      throw new CavanHttpError(result.status, path);
     }
     try {
       return JSON.parse(result.text) as T;

@@ -1,45 +1,70 @@
-const money = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+import { getActiveLanguage } from '@/lib/i18n';
 
-export const formatMoney = (value: number) => money.format(value);
+// Formatting follows the interface language (see `lib/i18n`).
 
-/** `2026-08-15` or a full ISO timestamp -> `15.08.2026` */
+const moneyFormats = {
+  en: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }),
+  ru: new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'USD' }),
+};
+
+/** `1232.68` -> `$1,232.68` / `1 232,68 $` */
+export const formatMoney = (value: number) =>
+  moneyFormats[getActiveLanguage()].format(value);
+
+/** `2026-08-15` or a full ISO timestamp -> `08/15/2026` / `15.08.2026` */
 export const formatDate = (value: string | null) => {
   if (!value) return '—';
   const [y, m, d] = value.slice(0, 10).split('-');
-  return `${d}.${m}.${y}`;
+  return getActiveLanguage() === 'ru' ? `${d}.${m}.${y}` : `${m}/${d}/${y}`;
 };
 
-const MONTHS_SHORT = [
-  'янв',
-  'фев',
-  'мар',
-  'апр',
-  'май',
-  'июн',
-  'июл',
-  'авг',
-  'сен',
-  'окт',
-  'ноя',
-  'дек',
-];
+/** A timestamp's local time: `7:53 PM` / `19:53` */
+export const formatTime = (value: string) =>
+  new Date(value).toLocaleTimeString(
+    getActiveLanguage() === 'ru' ? 'ru-RU' : 'en-US',
+    { hour: '2-digit', minute: '2-digit' }
+  );
 
-/** `2026-08` -> `авг 2026` */
-export const formatMonth = (key: string) => {
-  const [y, m] = key.split('-');
-  return `${MONTHS_SHORT[Number(m) - 1]} ${y}`;
+const MONTHS_SHORT = {
+  en: [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ],
+  ru: [
+    'янв',
+    'фев',
+    'мар',
+    'апр',
+    'май',
+    'июн',
+    'июл',
+    'авг',
+    'сен',
+    'окт',
+    'ноя',
+    'дек',
+  ],
 };
 
-/** `2026-08` -> `авг` */
+/** `2026-08` -> `Aug` / `авг` */
 export const formatMonthShort = (key: string) =>
-  MONTHS_SHORT[Number(key.split('-')[1]) - 1];
+  MONTHS_SHORT[getActiveLanguage()][Number(key.split('-')[1]) - 1];
 
-const plural = (n: number, one: string, few: string, many: string) => {
+/** `2026-08` -> `Aug 2026` / `авг 2026` */
+export const formatMonth = (key: string) =>
+  `${formatMonthShort(key)} ${key.split('-')[0]}`;
+
+const pluralRu = (n: number, one: string, few: string, many: string) => {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 === 1 && mod100 !== 11) return one;
@@ -47,18 +72,26 @@ const plural = (n: number, one: string, few: string, many: string) => {
   return many;
 };
 
-/** Time since a date in whole months: `3 года 5 мес`, `1 год`, `7 мес`. */
+/**
+ * Time since a date in whole months: `3 yr 5 mo` / `3 года 5 мес`,
+ * `1 yr` / `1 год`, `7 mo` / `7 мес`.
+ */
 export const formatDuration = (from: string | null, to = new Date()) => {
   if (!from) return '—';
+  const ru = getActiveLanguage() === 'ru';
   const [y, m, d] = from.slice(0, 10).split('-').map(Number);
   let months = (to.getFullYear() - y) * 12 + (to.getMonth() + 1 - m);
   if (to.getDate() < d) months -= 1;
-  if (months < 1) return 'меньше месяца';
+  if (months < 1) return ru ? 'меньше месяца' : 'less than a month';
   const years = Math.floor(months / 12);
   const rest = months % 12;
   return [
-    years ? `${years} ${plural(years, 'год', 'года', 'лет')}` : '',
-    rest ? `${rest} мес` : '',
+    years
+      ? ru
+        ? `${years} ${pluralRu(years, 'год', 'года', 'лет')}`
+        : `${years} yr`
+      : '',
+    rest ? (ru ? `${rest} мес` : `${rest} mo`) : '',
   ]
     .filter(Boolean)
     .join(' ');

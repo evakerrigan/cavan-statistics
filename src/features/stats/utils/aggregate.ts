@@ -92,7 +92,8 @@ export type Stats = {
   cavanTotal: number;
 };
 
-export const UNKNOWN_PARTNER = 'Другое';
+/** Partner key for sales without one; shown translated in the UI. */
+export const UNKNOWN_PARTNER = 'other';
 export const UNMATCHED_KEY = 'unmatched';
 
 export const cavanShootKey = (id: number) => `cavan:${id}`;
@@ -496,7 +497,7 @@ export const buildStats = (
           cavanId: null,
           legacyId: items[0].shootId,
           manualId: null,
-          title: shootTitles[key] || code || `Съёмка #${items[0].shootId}`,
+          title: shootTitles[key] || code || `#${items[0].shootId}`,
           code,
           createdAt: firstDate,
           publishedAt: firstDate,
@@ -539,7 +540,8 @@ export const buildStats = (
           cavanId: null,
           legacyId: null,
           manualId: null,
-          title: 'Без съёмки',
+          // Shown translated in the UI (see `shoot-labels.ts`).
+          title: '',
           code: null,
           createdAt: null,
           publishedAt: null,

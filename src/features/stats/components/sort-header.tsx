@@ -29,8 +29,12 @@ const SortButton = ({
       onClick={() => onSort(columnKey)}
     >
       {label}
-      <span aria-hidden="true">
-        {active ? (direction === 'asc' ? ' ↑' : ' ↓') : ''}
+      {/* The active column gets a big coloured arrow; others hint on hover. */}
+      <span
+        aria-hidden="true"
+        className={active ? styles.table__sortArrow : styles.table__sortHint}
+      >
+        {active ? (direction === 'asc' ? '↑' : '↓') : '↕'}
       </span>
     </button>
   );

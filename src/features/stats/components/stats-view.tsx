@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
+import type { MessageKey } from '@/lib/i18n';
 import type { Dataset } from '@/types/cavan';
 import { formatMoney } from '@/utils/format';
 import { useManualShoots } from '../hooks/use-manual-shoots';
 import { useShootMerges } from '../hooks/use-shoot-merges';
 import { useShootTitles } from '../hooks/use-shoot-titles';
 import { buildStats } from '../utils/aggregate';
+import { partnerLabel } from '../utils/shoot-labels';
 import { MonthsView } from './months-view';
 import { PhotosTable } from './photos-table';
 import { ShootsTable } from './shoots-table';
@@ -14,15 +17,16 @@ type StatsViewProps = {
   dataset: Dataset;
 };
 
-const TABS = [
-  { id: 'shoots', label: 'По съёмкам' },
-  { id: 'photos', label: 'По фото' },
-  { id: 'months', label: 'По месяцам' },
-] as const;
+const TABS: { id: 'shoots' | 'photos' | 'months'; label: MessageKey }[] = [
+  { id: 'shoots', label: 'tabs.shoots' },
+  { id: 'photos', label: 'tabs.photos' },
+  { id: 'months', label: 'tabs.months' },
+];
 
 type TabId = (typeof TABS)[number]['id'];
 
 export const StatsView = ({ dataset }: StatsViewProps) => {
+  const { t } = useI18n();
   const [tab, setTab] = useState<TabId>('shoots');
   const manual = useManualShoots();
   const titles = useShootTitles();
@@ -41,7 +45,7 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
       return next;
     });
 
-  // Wait for the user's own shoots, so «Без съёмки» doesn't flash on load.
+  // Wait for the user's own shoots, so «No shoot» doesn't flash on load.
   if (!ready) return null;
 
   const missing = Math.round((stats.cavanTotal - stats.revenue) * 100) / 100;
@@ -50,31 +54,34 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
 
   return (
     <div className={styles.stats}>
-      <h2 className={styles.sectionTitle}>Общая статистика портфеля</h2>
+      <h2 className={styles.sectionTitle}>{t('stats.overviewTitle')}</h2>
       <div className={styles.tiles}>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>Заработано</div>
+          <div className={styles.tile__label}>{t('stats.earned')}</div>
           <div className={`${styles.tile__value} ${styles.tile__hero}`}>
             {formatMoney(stats.revenue)}
           </div>
         </div>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>Продаж</div>
+          <div className={styles.tile__label}>{t('stats.sales')}</div>
           <div className={styles.tile__value}>{stats.salesCount}</div>
         </div>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>Продано фото</div>
+          <div className={styles.tile__label}>{t('stats.soldPhotos')}</div>
           <div className={styles.tile__value}>
             {stats.soldPhotos}
-            <span className={styles.tile__of}> из {stats.publishedPhotos}</span>
+            <span className={styles.tile__of}>
+              {' '}
+              {t('stats.of', { n: stats.publishedPhotos })}
+            </span>
           </div>
         </div>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>Съёмок</div>
+          <div className={styles.tile__label}>{t('stats.shoots')}</div>
           <div className={styles.tile__value}>{matchedShoots.length}</div>
         </div>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>Ср. доход с проданного фото</div>
+          <div className={styles.tile__label}>{t('stats.perSold')}</div>
           <div className={styles.tile__value}>
             {stats.revenuePerSoldPhoto === null
               ? '—'
@@ -82,7 +89,7 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           </div>
         </div>
         <div className={styles.tile}>
-          <div className={styles.tile__label}>КПД на 1 фото портфеля</div>
+          <div className={styles.tile__label}>{t('stats.perPortfolio')}</div>
           <div className={styles.tile__value}>
             {stats.revenuePerPortfolioPhoto === null
               ? '—'
@@ -91,11 +98,11 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
         </div>
       </div>
 
-      <h2 className={styles.sectionTitle}>Статистика по партнерам</h2>
+      <h2 className={styles.sectionTitle}>{t('stats.partnersTitle')}</h2>
       <div className={styles.tiles}>
         {stats.partners.map((p) => (
           <div key={p} className={styles.tile}>
-            <div className={styles.tile__label}>{p}</div>
+            <div className={styles.tile__label}>{partnerLabel(p, t)}</div>
             <div className={styles.tile__value}>
               {formatMoney(
                 stats.months.reduce((sum, m) => sum + (m.byPartner[p] ?? 0), 0)
@@ -107,31 +114,33 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
 
       {Math.abs(missing) >= 0.01 && (
         <p className={styles.notice}>
-          Cavan показывает общий доход {formatMoney(stats.cavanTotal)}, а
-          собрано {formatMoney(stats.revenue)} (разница {formatMoney(missing)}).
-          Попробуйте обновить данные ещё раз.
+          {t('stats.mismatch', {
+            total: formatMoney(stats.cavanTotal),
+            collected: formatMoney(stats.revenue),
+            diff: formatMoney(missing),
+          })}
         </p>
       )}
       {unmatched && (
         <p className={styles.notice}>
-          {unmatched.photos.length} фото на {formatMoney(unmatched.revenue)} не
-          удалось связать со съёмкой: их нет ни в портфолио, ни в съёмках Submit
-          Content (например, фото удалены). Откройте строку «Без съёмки»,
-          отметьте фото и соберите из них свою съёмку.
+          {t('stats.unmatched', {
+            count: unmatched.photos.length,
+            amount: formatMoney(unmatched.revenue),
+          })}
         </p>
       )}
 
       <div className={styles.tabs} role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((item) => (
           <button
-            key={t.id}
+            key={item.id}
             type="button"
             role="tab"
-            aria-selected={tab === t.id}
-            className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
-            onClick={() => setTab(t.id)}
+            aria-selected={tab === item.id}
+            className={`${styles.tab} ${tab === item.id ? styles.tabActive : ''}`}
+            onClick={() => setTab(item.id)}
           >
-            {t.label}
+            {t(item.label)}
           </button>
         ))}
       </div>

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { StatsView } from '@/features/stats';
-import { SyncPanel } from '@/features/sync';
+import { ClearData, SyncPanel } from '@/features/sync';
+import { useI18n } from '@/hooks/use-i18n';
 import { loadDataset } from '@/lib/storage';
 import type { Dataset } from '@/types/cavan';
 import styles from './dashboard.module.scss';
 
 export const DashboardRoute = () => {
+  const { t } = useI18n();
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -20,13 +22,10 @@ export const DashboardRoute = () => {
     <div className={styles.dashboard}>
       <SyncPanel dataset={dataset} onSynced={setDataset} />
       {loaded && dataset && <StatsView dataset={dataset} />}
+      {loaded && dataset && <ClearData />}
       {loaded && !dataset && (
         <div className={styles.dashboard__empty}>
-          <p>
-            Откройте cavanimages.com в этом браузере, войдите в аккаунт и
-            нажмите «Загрузить данные». Плагин соберёт все продажи и съёмки —
-            это займёт несколько минут.
-          </p>
+          <p>{t('dashboard.empty')}</p>
         </div>
       )}
     </div>

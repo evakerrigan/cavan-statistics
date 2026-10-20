@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { LanguageToggle } from '@/components/ui/language-toggle';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { isExtensionContext } from '@/lib/cavan-client';
+import { useI18n } from '@/hooks/use-i18n';
+import {
+  CavanAuthError,
+  CavanHttpError,
+  isExtensionContext,
+} from '@/lib/cavan-client';
+import type { Translate } from '@/lib/i18n';
 import { saveDataset } from '@/lib/storage';
 import type { Dataset } from '@/types/cavan';
-import { formatDate } from '@/utils/format';
+import { formatDate, formatMonth, formatTime } from '@/utils/format';
 import { collectDataset, type SyncProgress } from '../collect';
 import styles from './sync-panel.module.scss';
 
@@ -14,10 +21,36 @@ type SyncPanelProps = {
   onSynced: (dataset: Dataset) => void;
 };
 
+const progressLabel = (progress: SyncProgress, t: Translate) => {
+  switch (progress.step) {
+    case 'connect':
+      return t('progress.connect');
+    case 'month':
+      return t('progress.month', { month: formatMonth(progress.detail ?? '') });
+    case 'history':
+      return t('progress.history');
+    case 'portfolio':
+      return t('progress.portfolio');
+    case 'shootList':
+      return t('progress.shootList');
+    case 'shoot':
+      return t('progress.shoot', { title: progress.detail ?? '' });
+  }
+};
+
+const errorMessage = (error: unknown, t: Translate) => {
+  if (error instanceof CavanAuthError) return t('sync.errorAuth');
+  if (error instanceof CavanHttpError) {
+    return t('sync.errorHttp', { status: error.status });
+  }
+  return error instanceof Error ? error.message : String(error);
+};
+
 export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
+  const { t } = useI18n();
   const syncedAt = dataset?.syncedAt ?? null;
   const [progress, setProgress] = useState<SyncProgress | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const canSync = isExtensionContext();
 
   const handleSync = async (full: boolean) => {
@@ -30,7 +63,7 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
       await saveDataset(next);
       onSynced(next);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(e);
     } finally {
       setProgress(null);
     }
@@ -46,9 +79,10 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
   return (
     <section className={styles.syncPanel}>
       <div className={styles.syncPanel__row}>
-        <h1 className={styles.syncPanel__title}>Статистика Cavan от Евы</h1>
+        <h1 className={styles.syncPanel__title}>{t('app.title')}</h1>
         <div className={styles.syncPanel__controls}>
           <div className={styles.syncPanel__actions}>
+            <LanguageToggle />
             <ThemeToggle />
             {dataset && (
               <Button
@@ -56,7 +90,7 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
                 onClick={() => handleSync(true)}
                 disabled={!!progress || !canSync}
               >
-                Полное обновление
+                {t('sync.full')}
               </Button>
             )}
             <Button
@@ -64,29 +98,30 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
               disabled={!!progress || !canSync}
             >
               {progress
-                ? 'Загружаю…'
+                ? t('sync.loading')
                 : dataset
-                  ? 'Добавить новые месяцы'
-                  : 'Загрузить данные'}
+                  ? t('sync.quick')
+                  : t('sync.first')}
             </Button>
           </div>
           <p className={styles.syncPanel__meta}>
             {syncedAt
-              ? `Данные обновлены ${formatDate(syncedAt)} в ${new Date(syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
-              : 'Данных пока нет — нажмите «Загрузить данные».'}
+              ? t('sync.updatedAt', {
+                  date: formatDate(syncedAt),
+                  time: formatTime(syncedAt),
+                })
+              : t('sync.noData')}
           </p>
         </div>
       </div>
       {!canSync && (
-        <p className={styles.syncPanel__note}>
-          Обновление работает только в установленном расширении.
-        </p>
+        <p className={styles.syncPanel__note}>{t('sync.extensionOnly')}</p>
       )}
 
       {progress && (
         <div className={styles.syncPanel__progress}>
           <div className={styles.syncPanel__progressLabel}>
-            <span>{progress.label}</span>
+            <span>{progressLabel(progress, t)}</span>
             {progress.total > 1 && (
               <span>
                 {progress.done} / {progress.total}
@@ -99,15 +134,13 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
               style={{ width: `${percent}%` }}
             />
           </div>
-          <p className={styles.syncPanel__note}>
-            Не закрывайте эту вкладку и вкладку Cavan, пока идёт обновление.
-          </p>
+          <p className={styles.syncPanel__note}>{t('sync.keepOpen')}</p>
         </div>
       )}
 
-      {error && (
+      {error !== null && (
         <p role="alert" className={styles.syncPanel__error}>
-          {error}
+          {errorMessage(error, t)}
         </p>
       )}
     </section>

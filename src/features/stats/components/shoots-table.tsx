@@ -1,9 +1,12 @@
 import { Fragment, useMemo, useState } from 'react';
+import { useI18n } from '@/hooks/use-i18n';
+import type { Translate } from '@/lib/i18n';
 import type { ManualShoot } from '@/types/cavan';
 import { formatDate, formatDuration, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
+import { partnerLabel, shootTitle } from '../utils/shoot-labels';
 import { ShootDetails } from './shoot-details';
 import { SortHeader, StackedSortHeader } from './sort-header';
 import styles from './table.module.scss';
@@ -19,20 +22,19 @@ type ShootsTableProps = {
   onUnmergeShoot: (source: string) => void;
 };
 
-const subtitleOf = (shoot: ShootStat) => {
-  const base = baseSubtitleOf(shoot);
+const subtitleOf = (shoot: ShootStat, t: Translate) => {
+  const base = baseSubtitleOf(shoot, t);
   const joined = shoot.mergedFrom.length;
-  return joined ? `${base} · + ${joined} присоед.` : base;
+  return joined ? `${base} · ${t('shoots.sub.joined', { n: joined })}` : base;
 };
 
-const baseSubtitleOf = (shoot: ShootStat) => {
-  if (shoot.kind === 'unmatched')
-    return 'Отметьте фото и соберите из них свою съёмку';
-  if (shoot.kind === 'manual') return 'Только проданные фото';
+const baseSubtitleOf = (shoot: ShootStat, t: Translate) => {
+  if (shoot.kind === 'unmatched') return t('shoots.sub.unmatched');
+  if (shoot.kind === 'manual') return t('shoots.sub.manual');
   if (shoot.kind === 'legacy') {
     return shoot.code && shoot.title !== shoot.code
-      ? `${shoot.code} · старая съёмка`
-      : 'Старая съёмка, нет в Submit Content';
+      ? t('shoots.sub.legacyCode', { code: shoot.code })
+      : t('shoots.sub.legacy');
   }
   return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
 };
@@ -59,11 +61,12 @@ export const ShootsTable = ({
   onMergeShoot,
   onUnmergeShoot,
 }: ShootsTableProps) => {
+  const { t } = useI18n();
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const accessors = useMemo<SortAccessors<ShootStat>>(
     () => ({
-      title: (s) => s.title,
+      title: (s) => shootTitle(s, t),
       createdAt: (s) => s.createdAt ?? '',
       onSale: (s) =>
         s.publishedAt
@@ -81,7 +84,7 @@ export const ShootsTable = ({
         ])
       ),
     }),
-    [partners]
+    [partners, t]
   );
   const { sorted, sortKey, direction, toggle } = useSort(
     shoots,
@@ -96,33 +99,38 @@ export const ShootsTable = ({
       <table className={styles.table}>
         <thead>
           <tr>
-            <th aria-label="Превью" />
-            <SortHeader label="Съёмка" columnKey="title" {...header} />
+            <th aria-label={t('col.preview')} />
+            <SortHeader label={t('col.shoot')} columnKey="title" {...header} />
             <StackedSortHeader
               columns={[
-                { label: 'Создана', columnKey: 'createdAt' },
-                { label: 'В продаже', columnKey: 'onSale' },
+                { label: t('shoots.col.created'), columnKey: 'createdAt' },
+                { label: t('shoots.col.onSale'), columnKey: 'onSale' },
               ]}
               {...header}
             />
             <StackedSortHeader
               columns={[
-                { label: 'Опубл. фото', columnKey: 'published' },
-                { label: 'Продано фото', columnKey: 'sold' },
+                { label: t('shoots.col.published'), columnKey: 'published' },
+                { label: t('shoots.col.sold'), columnKey: 'sold' },
               ]}
               numeric
               {...header}
             />
-            <SortHeader label="Продаж" columnKey="sales" numeric {...header} />
             <SortHeader
-              label="Доход"
+              label={t('col.sales')}
+              columnKey="sales"
+              numeric
+              {...header}
+            />
+            <SortHeader
+              label={t('col.revenue')}
               columnKey="revenue"
               numeric
               className={styles.table__revenue}
               {...header}
             />
             <SortHeader
-              label="На 1 фото"
+              label={t('shoots.col.perPhoto')}
               columnKey="perPhoto"
               numeric
               {...header}
@@ -130,7 +138,7 @@ export const ShootsTable = ({
             {partners.map((p) => (
               <SortHeader
                 key={p}
-                label={p}
+                label={partnerLabel(p, t)}
                 columnKey={`partner:${p}`}
                 numeric
                 {...header}
@@ -142,7 +150,7 @@ export const ShootsTable = ({
           {sorted.length === 0 && (
             <tr>
               <td colSpan={columnCount} className={styles.table__empty}>
-                Съёмок пока нет.
+                {t('shoots.empty')}
               </td>
             </tr>
           )}
@@ -170,13 +178,15 @@ export const ShootsTable = ({
                   </td>
                   <td>
                     <div className={styles.table__primary}>
-                      {shoot.title}
+                      {shootTitle(shoot, t)}
                       {shoot.kind === 'manual' && (
-                        <span className={shootStyles.manualBadge}>своя</span>
+                        <span className={shootStyles.manualBadge}>
+                          {t('shoots.badgeManual')}
+                        </span>
                       )}
                     </div>
                     <div className={styles.table__secondary}>
-                      {subtitleOf(shoot)}
+                      {subtitleOf(shoot, t)}
                     </div>
                   </td>
                   <td>
@@ -188,10 +198,13 @@ export const ShootsTable = ({
                   <td className={styles.table__num}>
                     <div className={styles.table__pairs}>
                       <StackRow
-                        label="опубл."
+                        label={t('shoots.pair.published')}
                         value={shoot.publishedCount ?? '—'}
                       />
-                      <StackRow label="продано" value={shoot.photos.length} />
+                      <StackRow
+                        label={t('shoots.pair.sold')}
+                        value={shoot.photos.length}
+                      />
                     </div>
                   </td>
                   <td className={styles.table__num}>{shoot.salesCount}</td>

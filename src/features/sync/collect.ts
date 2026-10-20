@@ -17,8 +17,18 @@ import {
   fetchShoot,
 } from './api/cavan-api';
 
+export type SyncStep =
+  | 'connect'
+  | 'month'
+  | 'history'
+  | 'portfolio'
+  | 'shootList'
+  | 'shoot';
+
 export type SyncProgress = {
-  label: string;
+  step: SyncStep;
+  /** `YYYY-MM` for `month`, the shoot title for `shoot`. */
+  detail?: string;
   done: number;
   total: number;
 };
@@ -50,8 +60,8 @@ const monthIndex = ({ year, month }: YearMonth) => year * 12 + month - 1;
 const sumMonths = (months: MonthSales[]) =>
   Math.round(months.reduce((sum, m) => sum + m.total, 0) * 100) / 100;
 
-const monthLabel = ({ year, month }: YearMonth) =>
-  `Продажи за ${String(month).padStart(2, '0')}.${year}`;
+const monthKey = ({ year, month }: YearMonth) =>
+  `${year}-${String(month).padStart(2, '0')}`;
 
 /** Fetches the given months; months with no sales are dropped. */
 const fetchMonths = async (
@@ -62,7 +72,8 @@ const fetchMonths = async (
   const months: MonthSales[] = [];
   for (let i = 0; i < calendar.length; i++) {
     onProgress({
-      label: monthLabel(calendar[i]),
+      step: 'month',
+      detail: monthKey(calendar[i]),
       done: i,
       total: calendar.length,
     });
@@ -84,7 +95,12 @@ const fetchAllMonths = async (
   const calendar = monthsBack(MAX_MONTHS);
   for (let i = 0; i < calendar.length; i++) {
     if (i >= BASE_MONTHS && total >= lifetimeTotal - 0.01) break;
-    onProgress({ label: monthLabel(calendar[i]), done: i, total: BASE_MONTHS });
+    onProgress({
+      step: 'month',
+      detail: monthKey(calendar[i]),
+      done: i,
+      total: BASE_MONTHS,
+    });
     const { year, month } = calendar[i];
     const sales = await fetchMonthSales(session, year, month);
     if (sales.items.length) months.push(sales);
@@ -121,7 +137,7 @@ export const collectDataset = async (
   onProgress: OnProgress,
   { previous, full: forceFull = false }: CollectOptions
 ): Promise<Dataset> => {
-  onProgress({ label: 'Подключаюсь к Cavan', done: 0, total: 1 });
+  onProgress({ step: 'connect', done: 0, total: 1 });
   const session = await openCavanSession();
 
   try {
@@ -167,7 +183,7 @@ export const collectDataset = async (
     );
     for (let i = 0; i < changedProductIds.length; i++) {
       onProgress({
-        label: 'История продаж фотографий',
+        step: 'history',
         done: i,
         total: changedProductIds.length,
       });
@@ -183,7 +199,7 @@ export const collectDataset = async (
     let portfolioPages = 1;
     for (let page = 1; page <= portfolioPages; page++) {
       onProgress({
-        label: 'Портфолио',
+        step: 'portfolio',
         done: page - 1,
         total: portfolioPages,
       });
@@ -194,7 +210,7 @@ export const collectDataset = async (
 
     // 4. Shoots (completed submissions). Files are fetched again only for
     // new submissions or ones whose number of published files changed.
-    onProgress({ label: 'Список съёмок', done: 0, total: 1 });
+    onProgress({ step: 'shootList', done: 0, total: 1 });
     const batchSummaries: BatchSummary[] = [];
     let lastPage = 1;
     for (let page = 1; page <= lastPage; page++) {
@@ -216,7 +232,8 @@ export const collectDataset = async (
     const fetched = new Map<number, Shoot>();
     for (let i = 0; i < toFetch.length; i++) {
       onProgress({
-        label: `Съёмка «${toFetch[i].title}»`,
+        step: 'shoot',
+        detail: toFetch[i].title,
         done: i,
         total: toFetch.length,
       });

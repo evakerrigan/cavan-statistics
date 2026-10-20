@@ -1,7 +1,8 @@
 @use '../../../styles/variables' as *;
 
-.themeToggle {
-  width: 40px;
+.toggleButton {
+  min-width: 40px;
+  padding: 0 10px !important;
   height: 40px;
   display: inline-flex !important;
   align-items: center;
