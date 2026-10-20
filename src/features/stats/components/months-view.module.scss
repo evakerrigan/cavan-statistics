@@ -84,6 +84,14 @@ $axis-width: 48px;
   }
 }
 
+// Number-of-sales chart: violet bars instead of blue.
+.toneSales {
+  .bar,
+  .legend__bar {
+    background: $color-chart-sales;
+  }
+}
+
 .plot {
   position: relative;
   height: $plot-height;

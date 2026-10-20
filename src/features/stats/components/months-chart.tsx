@@ -27,6 +27,8 @@ type MonthsChartProps = {
   seriesLabel: string;
   /** Bar values are counts: use whole-number ticks. */
   integer?: boolean;
+  /** `sales` draws the bars in violet, to tell the two charts apart. */
+  tone?: 'revenue' | 'sales';
   /**
    * Images in the portfolio at the end of each month (aligned with `months`),
    * drawn as a green area behind the bars on its own right-hand scale.
@@ -44,6 +46,7 @@ export const MonthsChart = ({
   formatTick,
   seriesLabel,
   integer = false,
+  tone = 'revenue',
   portfolio,
   tooltipExtra,
 }: MonthsChartProps) => {
@@ -57,6 +60,7 @@ export const MonthsChart = ({
     : [];
   const portfolioMax = portfolioTicks[portfolioTicks.length - 1] || 1;
   const labelEvery = Math.ceil(months.length / 24);
+  const toneClass = tone === 'sales' ? styles.toneSales : '';
 
   // The area's points sit at the centre of each month's column.
   const n = months.length;
@@ -72,7 +76,7 @@ export const MonthsChart = ({
       : '';
 
   return (
-    <div className={styles.chart}>
+    <div className={`${styles.chart} ${toneClass}`}>
       <div className={styles.legend}>
         <span className={styles.legend__item}>
           <span className={`${styles.legend__swatch} ${styles.legend__bar}`} />

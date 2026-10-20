@@ -121,6 +121,7 @@ export const MonthsView = ({
         formatValue={(n) => t('months.tooltipSales', { n })}
         formatTick={String}
         integer
+        tone="sales"
         seriesLabel={t('months.legendSales')}
         portfolio={portfolio}
         tooltipExtra={(m) => (
