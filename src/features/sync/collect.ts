@@ -1,9 +1,16 @@
 import { openCavanSession } from '@/lib/cavan-client';
-import type { Dataset, MonthSales, Product, Shoot } from '@/types/cavan';
+import type {
+  Dataset,
+  MonthSales,
+  PortfolioItem,
+  Product,
+  Shoot,
+} from '@/types/cavan';
 import {
   type BatchSummary,
   fetchCompletedBatchPage,
   fetchMonthSales,
+  fetchPortfolioPage,
   fetchPortfolioSize,
   fetchProductHistory,
   fetchSalesOverview,
@@ -82,7 +89,22 @@ export const collectDataset = async (
       if (product) products.push(product);
     }
 
-    // 3. Shoots (completed submissions) and the files in each of them.
+    // 3. The whole portfolio: links every image to its Cavan shoot.
+    const photographerId = await session.photographerId();
+    const portfolio: PortfolioItem[] = [];
+    let portfolioPages = 1;
+    for (let page = 1; page <= portfolioPages; page++) {
+      onProgress({
+        label: 'Портфолио',
+        done: page - 1,
+        total: portfolioPages,
+      });
+      const result = await fetchPortfolioPage(session, page, photographerId);
+      portfolioPages = result.lastPage;
+      portfolio.push(...result.items);
+    }
+
+    // 4. Shoots (completed submissions) and the files in each of them.
     onProgress({ label: 'Список съёмок', done: 0, total: 1 });
     const batchSummaries: BatchSummary[] = [];
     let lastPage = 1;
@@ -110,6 +132,7 @@ export const collectDataset = async (
       cavanTotal: overview.total,
       cavanDownloads: overview.downloads,
       portfolioSize,
+      portfolio,
       shoots,
       products,
       months,

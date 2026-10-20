@@ -37,6 +37,8 @@ const waitForTabLoad = (tabId: number) =>
 
 export type CavanSession = {
   post: <T>(path: string, body: unknown) => Promise<T>;
+  /** The logged-in contributor's photographer ID, read from the page. */
+  photographerId: () => Promise<number | null>;
   close: () => Promise<void>;
 };
 
@@ -106,9 +108,24 @@ export const openCavanSession = async (): Promise<CavanSession> => {
     }
   };
 
+  const photographerId = async () => {
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId: targetTabId },
+      world: 'MAIN',
+      // Cavan pages embed the user profile as JSON in an inline script.
+      func: () => {
+        const m = /"photographer_id":(\d+)/.exec(
+          document.documentElement.innerHTML
+        );
+        return m ? Number(m[1]) : null;
+      },
+    });
+    return injection?.result ?? null;
+  };
+
   const close = async () => {
     if (createdTab) await chrome.tabs.remove(targetTabId);
   };
 
-  return { post, close };
+  return { post, photographerId, close };
 };

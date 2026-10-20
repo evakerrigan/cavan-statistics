@@ -31,6 +31,23 @@ export type ShootPhoto = {
   thumbUrl: string | null;
 };
 
+/**
+ * An image in the portfolio (Portfolio Manager). Unlike sales data it carries
+ * Cavan's shoot ID, and its Cavan file name embeds the submission item ID:
+ * `CR_<shoot code>-<item id>-01.jpg`.
+ */
+export type PortfolioItem = {
+  id: number;
+  shootId: number;
+  /** File name as uploaded, e.g. `031A3282-1.jpg`. */
+  fileName: string;
+  /** File name on Cavan, e.g. `CR_KSLI210609-767409-01.jpg`. */
+  cavanFileName: string;
+  headline: string;
+  createdAt: string;
+  thumbUrl: string;
+};
+
 /** A completed submission. One submission is one shoot. */
 export type Shoot = {
   id: number;
@@ -69,6 +86,9 @@ export type ManualShoot = {
   createdAt: string;
 };
 
+/** Names the user gave to shoots, by shoot key (e.g. `legacy:61359`). */
+export type ShootTitles = Record<string, string>;
+
 export type Dataset = {
   /** ISO timestamp of the last successful sync. */
   syncedAt: string;
@@ -80,6 +100,8 @@ export type Dataset = {
    * synced before this field existed.
    */
   portfolioSize?: number;
+  /** Every image in the portfolio. Missing in older synced data. */
+  portfolio?: PortfolioItem[];
   shoots: Shoot[];
   products: Product[];
   months: MonthSales[];

@@ -1,10 +1,17 @@
 import type { CavanSession } from '@/lib/cavan-client';
-import type { MonthSales, Product, Shoot, ShootPhoto } from '@/types/cavan';
+import type {
+  MonthSales,
+  PortfolioItem,
+  Product,
+  Shoot,
+  ShootPhoto,
+} from '@/types/cavan';
 
 // Endpoints and payloads mirror what cavanimages.com itself sends from the
 // Sales & Analytics and Submit Content pages.
 const SALES_URL = '/account/photographer/api/sales';
 const STATS_URL = '/account/photographer/api/stats';
+const PORTFOLIO_URL = '/account/library/api/fetch';
 const BATCH_LIST_URL = '/account/ingest/api/list';
 const BATCH_FETCH_URL = '/account/ingest/api/fetch-batch';
 
@@ -25,6 +32,22 @@ type RawOverviewResponse = {
 
 type RawStatsResponse = {
   contributions_total?: number;
+};
+
+type RawPortfolioResponse = {
+  results: {
+    current_page: number;
+    last_page: number;
+    data: {
+      id: number;
+      shoot_id: number;
+      file_name: string;
+      original_file_name: string;
+      headline: string;
+      created_at: string;
+      thumbnail: string;
+    }[];
+  };
 };
 
 type RawMonthResponse = {
@@ -108,6 +131,31 @@ export const fetchSalesOverview = async (session: CavanSession) => {
 export const fetchPortfolioSize = async (session: CavanSession) => {
   const data = await session.post<RawStatsResponse>(STATS_URL, {});
   return data.contributions_total ?? 0;
+};
+
+/** One page (100 images) of Portfolio Manager. */
+export const fetchPortfolioPage = async (
+  session: CavanSession,
+  page: number,
+  photographerId: number | null
+): Promise<{ lastPage: number; items: PortfolioItem[] }> => {
+  const data = await session.post<RawPortfolioResponse>(PORTFOLIO_URL, {
+    photographer_id: photographerId,
+    query: '',
+    page,
+  });
+  return {
+    lastPage: data.results.last_page,
+    items: data.results.data.map((item) => ({
+      id: item.id,
+      shootId: item.shoot_id,
+      fileName: item.original_file_name,
+      cavanFileName: item.file_name,
+      headline: item.headline,
+      createdAt: item.created_at,
+      thumbUrl: item.thumbnail,
+    })),
+  };
 };
 
 export const fetchMonthSales = async (

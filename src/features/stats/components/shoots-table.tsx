@@ -14,12 +14,18 @@ type ShootsTableProps = {
   partners: string[];
   manualShoots: ManualShoot[];
   onManualShootsChange: (update: ManualShootsUpdate) => void;
+  onRenameShoot: (key: string, title: string) => void;
 };
 
 const subtitleOf = (shoot: ShootStat) => {
   if (shoot.kind === 'unmatched')
     return 'Отметьте фото и соберите из них свою съёмку';
   if (shoot.kind === 'manual') return 'Только проданные фото';
+  if (shoot.kind === 'legacy') {
+    return shoot.title === shoot.code
+      ? 'Старая съёмка, нет в Submit Content'
+      : `${shoot.code} · старая съёмка`;
+  }
   return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
 };
 
@@ -41,6 +47,7 @@ export const ShootsTable = ({
   partners,
   manualShoots,
   onManualShootsChange,
+  onRenameShoot,
 }: ShootsTableProps) => {
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -203,6 +210,7 @@ export const ShootsTable = ({
                         shoot={shoot}
                         manualShoots={manualShoots}
                         onManualShootsChange={onManualShootsChange}
+                        onRenameShoot={onRenameShoot}
                       />
                     </td>
                   </tr>

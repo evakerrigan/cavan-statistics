@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Dataset } from '@/types/cavan';
 import { formatMoney } from '@/utils/format';
 import { useManualShoots } from '../hooks/use-manual-shoots';
+import { useShootTitles } from '../hooks/use-shoot-titles';
 import { buildStats } from '../utils/aggregate';
 import { MonthsView } from './months-view';
 import { PhotosTable } from './photos-table';
@@ -22,11 +23,21 @@ type TabId = (typeof TABS)[number]['id'];
 
 export const StatsView = ({ dataset }: StatsViewProps) => {
   const [tab, setTab] = useState<TabId>('shoots');
-  const { manualShoots, ready, update } = useManualShoots();
+  const manual = useManualShoots();
+  const titles = useShootTitles();
   const stats = useMemo(
-    () => buildStats(dataset, manualShoots),
-    [dataset, manualShoots]
+    () => buildStats(dataset, manual.value, titles.value),
+    [dataset, manual.value, titles.value]
   );
+  const ready = manual.ready && titles.ready;
+
+  const renameShoot = (key: string, title: string) =>
+    titles.update((current) => {
+      const next = { ...current };
+      if (title) next[key] = title;
+      else delete next[key];
+      return next;
+    });
 
   // Wait for the user's own shoots, so «Без съёмки» doesn't flash on load.
   if (!ready) return null;
@@ -37,6 +48,7 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
 
   return (
     <div className={styles.stats}>
+      <h2 className={styles.sectionTitle}>Общая статистика портфеля</h2>
       <div className={styles.tiles}>
         <div className={styles.tile}>
           <div className={styles.tile__label}>Заработано</div>
@@ -77,6 +89,7 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
         </div>
       </div>
 
+      <h2 className={styles.sectionTitle}>Статистика по партнерам</h2>
       <div className={styles.tiles}>
         {stats.partners.map((p) => (
           <div key={p} className={styles.tile}>
@@ -100,9 +113,9 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
       {unmatched && (
         <p className={styles.notice}>
           {unmatched.photos.length} фото на {formatMoney(unmatched.revenue)} не
-          удалось связать со съёмкой: их имени файла нет ни в одной съёмке из
-          раздела Submit Content. Откройте строку «Без съёмки», отметьте фото и
-          соберите из них свою съёмку.
+          удалось связать со съёмкой: их нет ни в портфолио, ни в съёмках Submit
+          Content (например, фото удалены). Откройте строку «Без съёмки»,
+          отметьте фото и соберите из них свою съёмку.
         </p>
       )}
 
@@ -125,8 +138,9 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
         <ShootsTable
           shoots={stats.shoots}
           partners={stats.partners}
-          manualShoots={manualShoots}
-          onManualShootsChange={update}
+          manualShoots={manual.value}
+          onManualShootsChange={manual.update}
+          onRenameShoot={renameShoot}
         />
       )}
       {tab === 'photos' && (

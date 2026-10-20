@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
@@ -19,6 +19,8 @@ type ShootDetailsProps = {
   shoot: ShootStat;
   manualShoots: ManualShoot[];
   onManualShootsChange: (update: ManualShootsUpdate) => void;
+  /** Names an older Cavan shoot; an empty title restores its code. */
+  onRenameShoot: (key: string, title: string) => void;
 };
 
 const productUrl = (id: number) =>
@@ -73,24 +75,77 @@ const UnsoldCard = ({ photo }: { photo: ShootPhoto }) => (
   </div>
 );
 
-/** A submission synced from Cavan: sold images first, then unsold in grey. */
-const CavanShootPhotos = ({ shoot }: { shoot: ShootStat }) => {
-  if (!shoot.photos.length && !shoot.unsoldPhotos.length) {
-    return (
-      <p className={styles.empty}>В этой съёмке нет опубликованных фото.</p>
-    );
-  }
+type RenameFormProps = {
+  title: string;
+  onRename: (title: string) => void;
+  /** Allow saving an empty name (to restore the default one). */
+  allowEmpty?: boolean;
+  children?: ReactNode;
+};
+
+const RenameForm = ({
+  title,
+  onRename,
+  allowEmpty = false,
+  children,
+}: RenameFormProps) => {
+  const [value, setValue] = useState(title);
+  const trimmed = value.trim();
   return (
-    <div className={styles.grid}>
-      {shoot.photos.map((photo) => (
-        <SoldCard key={photo.product.id} photo={photo} />
-      ))}
-      {shoot.unsoldPhotos.map((photo) => (
-        <UnsoldCard key={photo.itemId} photo={photo} />
-      ))}
+    <div className={styles.toolbar}>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        aria-label="Название съёмки"
+        placeholder="Название съёмки"
+        className={styles.input}
+      />
+      <Button
+        variant="secondary"
+        onClick={() => onRename(trimmed)}
+        disabled={trimmed === title || (!trimmed && !allowEmpty)}
+      >
+        Переименовать
+      </Button>
+      {children}
     </div>
   );
 };
+
+/** A Cavan shoot: sold images first, then unsold in grey. */
+const CavanShootPhotos = ({
+  shoot,
+  onRenameShoot,
+}: Pick<ShootDetailsProps, 'shoot' | 'onRenameShoot'>) => (
+  <div>
+    {shoot.kind === 'legacy' && (
+      <>
+        <p className={styles.hint}>
+          Старая съёмка: в Submit Content её нет, плагин собрал её по данным
+          портфолио. Дайте ей понятное название — пустое вернёт код съёмки.
+        </p>
+        <RenameForm
+          title={shoot.title === shoot.code ? '' : shoot.title}
+          onRename={(title) => onRenameShoot(shoot.key, title)}
+          allowEmpty
+        />
+      </>
+    )}
+    {!shoot.photos.length && !shoot.unsoldPhotos.length ? (
+      <p className={styles.empty}>В этой съёмке нет опубликованных фото.</p>
+    ) : (
+      <div className={styles.grid}>
+        {shoot.photos.map((photo) => (
+          <SoldCard key={photo.product.id} photo={photo} />
+        ))}
+        {shoot.unsoldPhotos.map((photo) => (
+          <UnsoldCard key={photo.itemId} photo={photo} />
+        ))}
+      </div>
+    )}
+  </div>
+);
 
 /**
  * «Без съёмки» and the user's own shoots: images can be ticked and moved into
@@ -105,7 +160,6 @@ const EditableShootPhotos = ({
   const [query, setQuery] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [targetId, setTargetId] = useState('');
-  const [rename, setRename] = useState(shoot.title);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const visible = useMemo(() => {
@@ -153,11 +207,9 @@ const EditableShootPhotos = ({
   const handleRemove = () =>
     apply((s) => removeFromManualShoot(s, selectedIds));
 
-  const handleRename = () => {
+  const handleRename = (title: string) => {
     const id = shoot.manualId;
-    if (id && rename.trim()) {
-      onManualShootsChange((s) => renameManualShoot(s, id, rename));
-    }
+    if (id) onManualShootsChange((s) => renameManualShoot(s, id, title));
   };
 
   const handleDelete = () => {
@@ -177,25 +229,11 @@ const EditableShootPhotos = ({
       )}
 
       {shoot.kind === 'manual' && (
-        <div className={styles.toolbar}>
-          <input
-            type="text"
-            value={rename}
-            onChange={(e) => setRename(e.target.value)}
-            aria-label="Название съёмки"
-            className={styles.input}
-          />
-          <Button
-            variant="secondary"
-            onClick={handleRename}
-            disabled={!rename.trim() || rename.trim() === shoot.title}
-          >
-            Переименовать
-          </Button>
+        <RenameForm title={shoot.title} onRename={handleRename}>
           <Button variant="secondary" onClick={() => setConfirmDelete(true)}>
             Удалить съёмку
           </Button>
-        </div>
+        </RenameForm>
       )}
 
       <div className={styles.toolbar}>
@@ -335,8 +373,8 @@ const EditableShootPhotos = ({
 };
 
 export const ShootDetails = (props: ShootDetailsProps) =>
-  props.shoot.kind === 'cavan' ? (
-    <CavanShootPhotos shoot={props.shoot} />
+  props.shoot.kind === 'cavan' || props.shoot.kind === 'legacy' ? (
+    <CavanShootPhotos shoot={props.shoot} onRenameShoot={props.onRenameShoot} />
   ) : (
     <EditableShootPhotos {...props} />
   );

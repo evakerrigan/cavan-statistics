@@ -1,10 +1,12 @@
 import type {
   Dataset,
   ManualShoot,
+  PortfolioItem,
   Product,
   Sale,
   Shoot,
   ShootPhoto,
+  ShootTitles,
 } from '@/types/cavan';
 
 export type PartnerTotals = Record<string, number>;
@@ -21,16 +23,20 @@ export type PhotoStat = {
 
 /**
  * - `cavan`: a submission synced from Cavan
+ * - `legacy`: an older Cavan shoot with no submission in Submit Content,
+ *   recovered from the portfolio
  * - `manual`: a shoot the user created by hand
  * - `unmatched`: images that belong to no shoot yet
  */
-export type ShootKind = 'cavan' | 'manual' | 'unmatched';
+export type ShootKind = 'cavan' | 'legacy' | 'manual' | 'unmatched';
 
 export type ShootStat = {
   key: string;
   kind: ShootKind;
   /** Cavan submission ID (`cavan` only). */
   cavanId: number | null;
+  /** Cavan's internal shoot ID (`legacy` only). */
+  legacyId: number | null;
   /** {@link ManualShoot.id} (`manual` only). */
   manualId: string | null;
   title: string;
@@ -47,7 +53,7 @@ export type ShootStat = {
   thumbUrl: string | null;
   /** Images with at least one sale. */
   photos: PhotoStat[];
-  /** Published files with no sales (`cavan` only). */
+  /** Published files with no sales (`cavan` and `legacy`). */
   unsoldPhotos: ShootPhoto[];
   salesCount: number;
   revenue: number;
@@ -87,6 +93,7 @@ export const UNKNOWN_PARTNER = 'Другое';
 export const UNMATCHED_KEY = 'unmatched';
 
 export const cavanShootKey = (id: number) => `cavan:${id}`;
+export const legacyShootKey = (id: number) => `legacy:${id}`;
 export const manualShootKey = (id: string) => `manual:${id}`;
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -177,6 +184,52 @@ export const matchProductsToShoots = (
   return result;
 };
 
+/** `CR_KSLI210609-767409-01.jpg` -> `{ code: 'KSLI210609', itemId: 767409 }` */
+export const parseCavanFileName = (name: string) => {
+  const m = /^CR_([A-Za-z0-9]+)-(\d+)-/.exec(name);
+  return m ? { code: m[1], itemId: Number(m[2]) } : null;
+};
+
+/**
+ * The shoot of every portfolio image, by product ID. This is exact: the
+ * portfolio file name carries the submission item ID. Images whose Cavan shoot
+ * has no visible submission (very old uploads) are grouped by that shoot.
+ */
+export const groupPortfolio = (
+  portfolio: PortfolioItem[],
+  shoots: Shoot[]
+): Map<number, string> => {
+  const batchOfItem = new Map<number, number>();
+  for (const shoot of shoots) {
+    for (const photo of shoot.photos) batchOfItem.set(photo.itemId, shoot.id);
+  }
+  const batchOfShoot = new Map<number, number>();
+  for (const item of portfolio) {
+    const itemId = parseCavanFileName(item.cavanFileName)?.itemId;
+    const batchId = itemId === undefined ? undefined : batchOfItem.get(itemId);
+    if (batchId !== undefined) batchOfShoot.set(item.shootId, batchId);
+  }
+  return new Map(
+    portfolio.map((item) => {
+      const batchId = batchOfShoot.get(item.shootId);
+      return [
+        item.id,
+        batchId === undefined
+          ? legacyShootKey(item.shootId)
+          : cavanShootKey(batchId),
+      ];
+    })
+  );
+};
+
+const portfolioToShootPhoto = (item: PortfolioItem): ShootPhoto => ({
+  itemId: item.id,
+  fileName: item.fileName,
+  headline: item.headline,
+  publishedAt: item.createdAt,
+  thumbUrl: item.thumbUrl,
+});
+
 /** Sales for one product: its full history, or the monthly rows as a fallback. */
 const salesForProduct = (product: Product, dataset: Dataset): Sale[] => {
   if (product.sales.length) return product.sales;
@@ -189,14 +242,22 @@ const salesForProduct = (product: Product, dataset: Dataset): Sale[] => {
 
 export const buildStats = (
   dataset: Dataset,
-  manualShoots: ManualShoot[] = []
+  manualShoots: ManualShoot[] = [],
+  shootTitles: ShootTitles = {}
 ): Stats => {
+  const portfolio = dataset.portfolio ?? [];
+  const portfolioGroups = groupPortfolio(portfolio, dataset.shoots);
+  // Name matching is the fallback for images missing from the portfolio
+  // (and for data synced before the portfolio was collected).
   const matches = matchProductsToShoots(dataset.products, dataset.shoots);
 
-  // A manual assignment is the user's explicit choice, so it wins.
+  // Priority: the user's manual assignment, then the portfolio, then names.
   const shootKeyOf = new Map<number, string>();
   for (const [productId, match] of matches) {
     shootKeyOf.set(productId, cavanShootKey(match.shootId));
+  }
+  for (const [productId, key] of portfolioGroups) {
+    shootKeyOf.set(productId, key);
   }
   for (const manual of manualShoots) {
     for (const productId of manual.productIds) {
@@ -236,6 +297,7 @@ export const buildStats = (
     | 'key'
     | 'kind'
     | 'cavanId'
+    | 'legacyId'
     | 'manualId'
     | 'title'
     | 'code'
@@ -280,23 +342,62 @@ export const buildStats = (
   const photosOf = (key: string | null) =>
     photos.filter((p) => p.shootKey === key);
 
-  const shoots = dataset.shoots.map((shoot) =>
-    makeShoot(
+  const soldProductIds = new Set(photos.map((p) => p.product.id));
+  const portfolioOf = new Map<string, PortfolioItem[]>();
+  for (const item of portfolio) {
+    const key = portfolioGroups.get(item.id)!;
+    portfolioOf.set(key, [...(portfolioOf.get(key) ?? []), item]);
+  }
+  const unsoldInPortfolio = (key: string) =>
+    (portfolioOf.get(key) ?? [])
+      .filter((item) => !soldProductIds.has(item.id))
+      .map(portfolioToShootPhoto);
+
+  const shoots = dataset.shoots.map((shoot) => {
+    const key = cavanShootKey(shoot.id);
+    const inPortfolio = portfolioOf.get(key)?.length ?? 0;
+    return makeShoot(
       {
-        key: cavanShootKey(shoot.id),
+        key,
         kind: 'cavan',
         cavanId: shoot.id,
+        legacyId: null,
         manualId: null,
         title: shoot.title,
         code: shoot.code,
         createdAt: shoot.createdAt,
         publishedAt: earliest(shoot.photos.map((p) => p.publishedAt)),
-        publishedCount: shoot.publishedCount,
-        unsoldPhotos: shoot.photos.filter((p) => !soldItemIds.has(p.itemId)),
+        publishedCount: inPortfolio || shoot.publishedCount,
+        unsoldPhotos: inPortfolio
+          ? unsoldInPortfolio(key)
+          : shoot.photos.filter((p) => !soldItemIds.has(p.itemId)),
       },
-      photosOf(cavanShootKey(shoot.id))
-    )
-  );
+      photosOf(key)
+    );
+  });
+  for (const [key, items] of portfolioOf) {
+    if (!key.startsWith('legacy:')) continue;
+    const code = parseCavanFileName(items[0].cavanFileName)?.code ?? null;
+    const firstDate = earliest(items.map((i) => i.createdAt));
+    shoots.push(
+      makeShoot(
+        {
+          key,
+          kind: 'legacy',
+          cavanId: null,
+          legacyId: items[0].shootId,
+          manualId: null,
+          title: shootTitles[key] || code || `Съёмка #${items[0].shootId}`,
+          code,
+          createdAt: firstDate,
+          publishedAt: firstDate,
+          publishedCount: items.length,
+          unsoldPhotos: unsoldInPortfolio(key),
+        },
+        photosOf(key)
+      )
+    );
+  }
   for (const manual of manualShoots) {
     const shootPhotos = photosOf(manualShootKey(manual.id));
     if (!shootPhotos.length) continue;
@@ -306,6 +407,7 @@ export const buildStats = (
           key: manualShootKey(manual.id),
           kind: 'manual',
           cavanId: null,
+          legacyId: null,
           manualId: manual.id,
           title: manual.title,
           code: null,
@@ -326,6 +428,7 @@ export const buildStats = (
           key: UNMATCHED_KEY,
           kind: 'unmatched',
           cavanId: null,
+          legacyId: null,
           manualId: null,
           title: 'Без съёмки',
           code: null,
@@ -371,6 +474,7 @@ export const buildStats = (
   const soldPhotos = photos.filter((p) => p.sales.length).length;
   const publishedPhotos =
     dataset.portfolioSize ||
+    portfolio.length ||
     dataset.shoots.reduce((sum, s) => sum + s.publishedCount, 0);
 
   return {

@@ -4,6 +4,13 @@
   width: 100%;
 }
 
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-text-secondary;
+  margin: 0 0 $spacing-sm 0;
+}
+
 // Rows of content-sized tiles: totals first, partners on the second row.
 .tiles {
   display: flex;
