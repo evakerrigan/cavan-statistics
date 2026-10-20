@@ -5,6 +5,7 @@ import type {
   Product,
   Sale,
   Shoot,
+  ShootMerges,
   ShootPhoto,
   ShootTitles,
 } from '@/types/cavan';
@@ -60,6 +61,8 @@ export type ShootStat = {
   revenuePerPhoto: number | null;
   lastSale: string | null;
   byPartner: PartnerTotals;
+  /** Shoots the user joined into this one. */
+  mergedFrom: { key: string; title: string }[];
 };
 
 export type MonthStat = {
@@ -250,6 +253,82 @@ export const groupPortfolio = (
   );
 };
 
+/** Only Cavan shoots can be joined; hand-made ones are edited directly. */
+export const isMergeable = (shoot: ShootStat) =>
+  shoot.kind === 'cavan' || shoot.kind === 'legacy';
+
+/** Follows merge links to the shoot that finally takes in `key`. */
+const resolveMerge = (
+  key: string,
+  merges: ShootMerges,
+  existing: Set<string>
+) => {
+  const path = [key];
+  for (;;) {
+    const next = merges[path[path.length - 1]];
+    if (!next || !existing.has(next)) return path[path.length - 1];
+    const loopStart = path.indexOf(next);
+    if (loopStart >= 0) {
+      // A loop of merges: settle on one member, the same from any start.
+      return [...path.slice(loopStart)].sort()[0];
+    }
+    path.push(next);
+  }
+};
+
+const combineShoots = (target: ShootStat, sources: ShootStat[]): ShootStat => {
+  const all = [target, ...sources];
+  const photos = all
+    .flatMap((s) => s.photos)
+    .sort((a, b) => b.revenue - a.revenue);
+  const byPartner: PartnerTotals = {};
+  for (const shoot of all) {
+    for (const [partner, amount] of Object.entries(shoot.byPartner)) {
+      addTo(byPartner, partner, amount);
+    }
+  }
+  const revenue = round(all.reduce((sum, s) => sum + s.revenue, 0));
+  const publishedCount = all.every((s) => s.publishedCount !== null)
+    ? all.reduce((sum, s) => sum + (s.publishedCount ?? 0), 0)
+    : null;
+  return {
+    ...target,
+    createdAt: earliest(all.map((s) => s.createdAt)),
+    publishedAt: earliest(all.map((s) => s.publishedAt)),
+    publishedCount,
+    thumbUrl: photos[0]?.product.thumbUrl ?? target.thumbUrl,
+    photos,
+    unsoldPhotos: all.flatMap((s) => s.unsoldPhotos),
+    salesCount: all.reduce((sum, s) => sum + s.salesCount, 0),
+    revenue,
+    revenuePerPhoto: publishedCount ? round(revenue / publishedCount) : null,
+    lastSale: all.reduce<string | null>((d, s) => latest(d, s.lastSale), null),
+    byPartner,
+    mergedFrom: sources.map((s) => ({ key: s.key, title: s.title })),
+  };
+};
+
+/** Folds every joined shoot into the shoot it was joined to. */
+const foldMerges = (shoots: ShootStat[], merges: ShootMerges) => {
+  const existing = new Set(shoots.filter(isMergeable).map((s) => s.key));
+  const resolve = (key: string) =>
+    existing.has(key) ? resolveMerge(key, merges, existing) : key;
+
+  const sourcesOf = new Map<string, ShootStat[]>();
+  for (const shoot of shoots) {
+    const target = resolve(shoot.key);
+    if (target !== shoot.key) {
+      sourcesOf.set(target, [...(sourcesOf.get(target) ?? []), shoot]);
+    }
+  }
+  const folded = shoots
+    .filter((s) => resolve(s.key) === s.key)
+    .map((s) =>
+      sourcesOf.has(s.key) ? combineShoots(s, sourcesOf.get(s.key)!) : s
+    );
+  return { shoots: folded, resolve };
+};
+
 const portfolioToShootPhoto = (item: PortfolioItem): ShootPhoto => ({
   itemId: item.id,
   fileName: item.fileName,
@@ -271,7 +350,8 @@ const salesForProduct = (product: Product, dataset: Dataset): Sale[] => {
 export const buildStats = (
   dataset: Dataset,
   manualShoots: ManualShoot[] = [],
-  shootTitles: ShootTitles = {}
+  shootTitles: ShootTitles = {},
+  shootMerges: ShootMerges = {}
 ): Stats => {
   const portfolio = dataset.portfolio ?? [];
   const portfolioGroups = groupPortfolio(portfolio, dataset.shoots);
@@ -364,6 +444,7 @@ export const buildStats = (
         : null,
       lastSale,
       byPartner,
+      mergedFrom: [],
     };
   };
 
@@ -469,7 +550,11 @@ export const buildStats = (
       )
     );
   }
-  shoots.sort((a, b) => b.revenue - a.revenue);
+  const merged = foldMerges(shoots, shootMerges);
+  merged.shoots.sort((a, b) => b.revenue - a.revenue);
+  const finalPhotos = photos.map((p) =>
+    p.shootKey ? { ...p, shootKey: merged.resolve(p.shootKey) } : p
+  );
 
   // Months
   const monthMap = new Map<string, MonthStat>();
@@ -517,8 +602,8 @@ export const buildStats = (
     partners: Object.keys(partnerTotals).sort(
       (a, b) => partnerTotals[b] - partnerTotals[a]
     ),
-    photos,
-    shoots,
+    photos: finalPhotos,
+    shoots: merged.shoots,
     months,
     otherRevenue,
     cavanTotal: dataset.cavanTotal,

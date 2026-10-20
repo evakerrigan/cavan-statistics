@@ -50,7 +50,7 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
           <p className={styles.syncPanel__meta}>
             {syncedAt
               ? `Данные обновлены ${formatDate(syncedAt)} в ${new Date(syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
-              : 'Данных пока нет — нажмите «Обновить данные».'}
+              : 'Данных пока нет — нажмите «Загрузить данные».'}
           </p>
         </div>
         <div className={styles.syncPanel__actions}>
@@ -67,14 +67,18 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
             onClick={() => handleSync(false)}
             disabled={!!progress || !canSync}
           >
-            {progress ? 'Обновляю…' : 'Обновить данные'}
+            {progress
+              ? 'Загружаю…'
+              : dataset
+                ? 'Добавить новые месяцы'
+                : 'Загрузить данные'}
           </Button>
         </div>
       </div>
       {dataset && !progress && (
         <p className={styles.syncPanel__note}>
-          «Обновить данные» скачивает только новое: последние месяцы и новые
-          съёмки. «Полное обновление» заново скачивает всё — это дольше.
+          «Добавить новые месяцы» скачивает только новое: последние месяцы и
+          новые съёмки. «Полное обновление» заново скачивает всё — это дольше.
         </p>
       )}
 

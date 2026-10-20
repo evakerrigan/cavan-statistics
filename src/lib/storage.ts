@@ -1,8 +1,14 @@
-import type { Dataset, ManualShoot, ShootTitles } from '@/types/cavan';
+import type {
+  Dataset,
+  ManualShoot,
+  ShootMerges,
+  ShootTitles,
+} from '@/types/cavan';
 
 const DATASET_KEY = 'dataset';
 const MANUAL_SHOOTS_KEY = 'manualShoots';
 const SHOOT_TITLES_KEY = 'shootTitles';
+const SHOOT_MERGES_KEY = 'shootMerges';
 
 // Outside the extension (plain `npm run dev`) chrome.storage is unavailable,
 // so fall back to localStorage to keep the UI usable while developing.
@@ -45,3 +51,9 @@ export const loadShootTitles = async () =>
 
 export const saveShootTitles = (titles: ShootTitles) =>
   write(SHOOT_TITLES_KEY, titles);
+
+export const loadShootMerges = async () =>
+  (await read<ShootMerges>(SHOOT_MERGES_KEY)) ?? {};
+
+export const saveShootMerges = (merges: ShootMerges) =>
+  write(SHOOT_MERGES_KEY, merges);

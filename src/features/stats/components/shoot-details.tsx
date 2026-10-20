@@ -5,7 +5,11 @@ import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import type { ManualShoot, ShootPhoto } from '@/types/cavan';
 import { formatDate, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
-import type { PhotoStat, ShootStat } from '../utils/aggregate';
+import {
+  isMergeable,
+  type PhotoStat,
+  type ShootStat,
+} from '../utils/aggregate';
 import {
   addToManualShoot,
   createManualShoot,
@@ -21,6 +25,10 @@ type ShootDetailsProps = {
   onManualShootsChange: (update: ManualShootsUpdate) => void;
   /** Names an older Cavan shoot; an empty title restores its code. */
   onRenameShoot: (key: string, title: string) => void;
+  /** Every shoot in the table, to pick one to join into this one. */
+  shoots: ShootStat[];
+  onMergeShoot: (source: string, target: string) => void;
+  onUnmergeShoot: (source: string) => void;
 };
 
 const productUrl = (id: number) =>
@@ -113,12 +121,100 @@ const RenameForm = ({
   );
 };
 
+const dateOf = (shoot: ShootStat) =>
+  new Date(
+    (shoot.publishedAt ?? shoot.createdAt ?? '1970-01-01').slice(0, 10)
+  ).getTime();
+
+/**
+ * Joins another Cavan shoot into this one — for a photo session that was
+ * uploaded in several parts. Shoots closest in date are offered first.
+ */
+const MergeForm = ({
+  shoot,
+  shoots,
+  onMergeShoot,
+  onUnmergeShoot,
+}: Pick<
+  ShootDetailsProps,
+  'shoot' | 'shoots' | 'onMergeShoot' | 'onUnmergeShoot'
+>) => {
+  const [sourceKey, setSourceKey] = useState('');
+  const candidates = shoots
+    .filter((s) => isMergeable(s) && s.key !== shoot.key)
+    .sort(
+      (a, b) =>
+        Math.abs(dateOf(a) - dateOf(shoot)) -
+        Math.abs(dateOf(b) - dateOf(shoot))
+    );
+
+  return (
+    <>
+      <div className={styles.toolbar}>
+        <select
+          value={sourceKey}
+          onChange={(e) => setSourceKey(e.target.value)}
+          aria-label="Съёмка, которую присоединить"
+          className={styles.input}
+        >
+          <option value="">Присоединить к этой съёмке…</option>
+          {candidates.map((s) => (
+            <option key={s.key} value={s.key}>
+              {s.title} · {formatDate(s.publishedAt ?? s.createdAt)} ·{' '}
+              {s.publishedCount ?? '?'} фото
+            </option>
+          ))}
+        </select>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            onMergeShoot(sourceKey, shoot.key);
+            setSourceKey('');
+          }}
+          disabled={!sourceKey}
+        >
+          Присоединить
+        </Button>
+      </div>
+      {shoot.mergedFrom.length > 0 && (
+        <div className={styles.merged}>
+          <span className={styles.merged__label}>Присоединены:</span>
+          {shoot.mergedFrom.map((m) => (
+            <span key={m.key} className={styles.merged__chip}>
+              {m.title}
+              <button
+                type="button"
+                className={styles.merged__remove}
+                onClick={() => onUnmergeShoot(m.key)}
+              >
+                Отсоединить
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
 /** A Cavan shoot: sold images first, then unsold in grey. */
 const CavanShootPhotos = ({
   shoot,
   onRenameShoot,
-}: Pick<ShootDetailsProps, 'shoot' | 'onRenameShoot'>) => (
+  shoots,
+  onMergeShoot,
+  onUnmergeShoot,
+}: Pick<
+  ShootDetailsProps,
+  'shoot' | 'onRenameShoot' | 'shoots' | 'onMergeShoot' | 'onUnmergeShoot'
+>) => (
   <div>
+    <MergeForm
+      shoot={shoot}
+      shoots={shoots}
+      onMergeShoot={onMergeShoot}
+      onUnmergeShoot={onUnmergeShoot}
+    />
     {shoot.kind === 'legacy' && (
       <>
         <p className={styles.hint}>
@@ -374,7 +470,13 @@ const EditableShootPhotos = ({
 
 export const ShootDetails = (props: ShootDetailsProps) =>
   props.shoot.kind === 'cavan' || props.shoot.kind === 'legacy' ? (
-    <CavanShootPhotos shoot={props.shoot} onRenameShoot={props.onRenameShoot} />
+    <CavanShootPhotos
+      shoot={props.shoot}
+      onRenameShoot={props.onRenameShoot}
+      shoots={props.shoots}
+      onMergeShoot={props.onMergeShoot}
+      onUnmergeShoot={props.onUnmergeShoot}
+    />
   ) : (
     <EditableShootPhotos {...props} />
   );

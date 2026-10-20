@@ -89,6 +89,12 @@ export type ManualShoot = {
 /** Names the user gave to shoots, by shoot key (e.g. `legacy:61359`). */
 export type ShootTitles = Record<string, string>;
 
+/**
+ * Shoots the user joined together, as source key -> target key. Used when one
+ * photo session was uploaded to Cavan in several parts.
+ */
+export type ShootMerges = Record<string, string>;
+
 export type Dataset = {
   /** ISO timestamp of the last successful sync. */
   syncedAt: string;

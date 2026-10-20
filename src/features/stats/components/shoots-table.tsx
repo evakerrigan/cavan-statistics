@@ -15,9 +15,17 @@ type ShootsTableProps = {
   manualShoots: ManualShoot[];
   onManualShootsChange: (update: ManualShootsUpdate) => void;
   onRenameShoot: (key: string, title: string) => void;
+  onMergeShoot: (source: string, target: string) => void;
+  onUnmergeShoot: (source: string) => void;
 };
 
 const subtitleOf = (shoot: ShootStat) => {
+  const base = baseSubtitleOf(shoot);
+  const joined = shoot.mergedFrom.length;
+  return joined ? `${base} · + ${joined} присоед.` : base;
+};
+
+const baseSubtitleOf = (shoot: ShootStat) => {
   if (shoot.kind === 'unmatched')
     return 'Отметьте фото и соберите из них свою съёмку';
   if (shoot.kind === 'manual') return 'Только проданные фото';
@@ -48,6 +56,8 @@ export const ShootsTable = ({
   manualShoots,
   onManualShootsChange,
   onRenameShoot,
+  onMergeShoot,
+  onUnmergeShoot,
 }: ShootsTableProps) => {
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -211,6 +221,9 @@ export const ShootsTable = ({
                         manualShoots={manualShoots}
                         onManualShootsChange={onManualShootsChange}
                         onRenameShoot={onRenameShoot}
+                        shoots={shoots}
+                        onMergeShoot={onMergeShoot}
+                        onUnmergeShoot={onUnmergeShoot}
                       />
                     </td>
                   </tr>

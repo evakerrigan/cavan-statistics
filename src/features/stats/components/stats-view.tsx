@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Dataset } from '@/types/cavan';
 import { formatMoney } from '@/utils/format';
 import { useManualShoots } from '../hooks/use-manual-shoots';
+import { useShootMerges } from '../hooks/use-shoot-merges';
 import { useShootTitles } from '../hooks/use-shoot-titles';
 import { buildStats } from '../utils/aggregate';
 import { MonthsView } from './months-view';
@@ -25,11 +26,12 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
   const [tab, setTab] = useState<TabId>('shoots');
   const manual = useManualShoots();
   const titles = useShootTitles();
+  const merges = useShootMerges();
   const stats = useMemo(
-    () => buildStats(dataset, manual.value, titles.value),
-    [dataset, manual.value, titles.value]
+    () => buildStats(dataset, manual.value, titles.value, merges.value),
+    [dataset, manual.value, titles.value, merges.value]
   );
-  const ready = manual.ready && titles.ready;
+  const ready = manual.ready && titles.ready && merges.ready;
 
   const renameShoot = (key: string, title: string) =>
     titles.update((current) => {
@@ -141,6 +143,8 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           manualShoots={manual.value}
           onManualShootsChange={manual.update}
           onRenameShoot={renameShoot}
+          onMergeShoot={merges.merge}
+          onUnmergeShoot={merges.unmerge}
         />
       )}
       {tab === 'photos' && (
