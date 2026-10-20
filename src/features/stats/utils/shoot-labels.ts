@@ -8,3 +8,21 @@ export const shootTitle = (shoot: ShootStat, t: Translate) =>
 /** A partner's name for display; sales without a partner show as «Other». */
 export const partnerLabel = (partner: string, t: Translate) =>
   partner === UNKNOWN_PARTNER ? t('partner.other') : partner;
+
+/** The second line under a shoot's name: its code, kind or joined parts. */
+export const shootSubtitle = (shoot: ShootStat, t: Translate) => {
+  const base = baseSubtitle(shoot, t);
+  const joined = shoot.mergedFrom.length;
+  return joined ? `${base} · ${t('shoots.sub.joined', { n: joined })}` : base;
+};
+
+const baseSubtitle = (shoot: ShootStat, t: Translate) => {
+  if (shoot.kind === 'unmatched') return t('shoots.sub.unmatched');
+  if (shoot.kind === 'manual') return t('shoots.sub.manual');
+  if (shoot.kind === 'legacy') {
+    return shoot.code && shoot.title !== shoot.code
+      ? t('shoots.sub.legacyCode', { code: shoot.code })
+      : t('shoots.sub.legacy');
+  }
+  return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
+};

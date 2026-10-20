@@ -14,6 +14,7 @@ export const en = {
   'sync.first': 'Load data',
   'sync.loading': 'Loading…',
   'sync.updatedAt': 'Updated {date} at {time}',
+  'sync.updatedLabel': 'updated',
   'sync.noData': 'No data yet — click “Load data”.',
   'sync.extensionOnly': 'Updating works only in the installed extension.',
   'sync.keepOpen': 'Keep this tab and the Cavan tab open while updating.',
@@ -120,6 +121,10 @@ export const en = {
   'months.legendPortfolio': 'Photos in portfolio (right scale)',
   'months.tooltipPortfolio': 'in portfolio: {n}',
 
+  'sort.by': 'Sort by',
+  'sort.asc': 'Ascending',
+  'sort.desc': 'Descending',
+
   'data.deleteAll': 'Delete all data',
   'data.deleteTitle': 'Delete all data?',
   'data.deleteBody':
@@ -144,6 +149,7 @@ export const ru: Messages = {
   'sync.first': 'Загрузить данные',
   'sync.loading': 'Загружаю…',
   'sync.updatedAt': 'Данные обновлены {date} в {time}',
+  'sync.updatedLabel': 'обновлено',
   'sync.noData': 'Данных пока нет — нажмите «Загрузить данные».',
   'sync.extensionOnly':
     'Обновление работает только в установленном расширении.',
@@ -252,6 +258,10 @@ export const ru: Messages = {
   'months.legendSales': 'Количество продаж',
   'months.legendPortfolio': 'Фото в портфеле (шкала справа)',
   'months.tooltipPortfolio': 'в портфеле: {n}',
+
+  'sort.by': 'Сортировка',
+  'sort.asc': 'По возрастанию',
+  'sort.desc': 'По убыванию',
 
   'data.deleteAll': 'Удалить все данные',
   'data.deleteTitle': 'Удалить все данные?',

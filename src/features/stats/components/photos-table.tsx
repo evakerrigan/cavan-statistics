@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
-import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
+import {
+  COMPACT_QUERY,
+  MOBILE_QUERY,
+  useMediaQuery,
+} from '@/hooks/use-media-query';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import { formatDate, formatMoney } from '@/utils/format';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
@@ -12,6 +16,7 @@ import {
 import { partnerColumnCount } from '../utils/partner-columns';
 import { shootTitle } from '../utils/shoot-labels';
 import { PartnerCells, PartnerHeaders } from './partner-columns';
+import { PhotoCards } from './photo-cards';
 import { SortHeader } from './sort-header';
 import styles from './table.module.scss';
 import photoStyles from './photos-table.module.scss';
@@ -25,6 +30,7 @@ type PhotosTableProps = {
 export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
   const { t } = useI18n();
   const compact = useMediaQuery(COMPACT_QUERY);
+  const mobile = useMediaQuery(MOBILE_QUERY);
   const [query, setQuery] = useState('');
 
   const shootTitles = useMemo(
@@ -79,105 +85,117 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
         placeholder={t('photos.search')}
         className={photoStyles.search}
       />
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th aria-label={t('col.preview')} />
-              <SortHeader
-                label={t('photos.col.photo')}
-                columnKey="id"
-                {...header}
-              />
-              <SortHeader
-                label={t('col.shoot')}
-                columnKey="shoot"
-                {...header}
-              />
-              <SortHeader
-                label={t('col.sales')}
-                columnKey="sales"
-                numeric
-                {...header}
-              />
-              <SortHeader
-                label={t('col.revenue')}
-                columnKey="revenue"
-                numeric
-                className={styles.table__revenue}
-                {...header}
-              />
-              <PartnerHeaders
-                partners={partners}
-                compact={compact}
-                {...header}
-              />
-              <SortHeader
-                label={t('photos.col.lastSale')}
-                columnKey="lastSale"
-                numeric
-                {...header}
-              />
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.length === 0 && (
+      {mobile ? (
+        <PhotoCards
+          photos={sorted}
+          partners={partners}
+          shootTitleOf={titleOf}
+          emptyText={query ? t('details.nothingFound') : t('photos.empty')}
+          {...header}
+        />
+      ) : (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td
-                  colSpan={6 + partnerColumnCount(partners, compact)}
-                  className={styles.table__empty}
-                >
-                  {query ? t('details.nothingFound') : t('photos.empty')}
-                </td>
-              </tr>
-            )}
-            {sorted.map((photo) => (
-              <tr key={photo.product.id}>
-                <td>
-                  <img
-                    src={photo.product.thumbUrl}
-                    alt=""
-                    loading="lazy"
-                    className={styles.table__thumb}
-                  />
-                </td>
-                <td
-                  className={`${photoStyles.photoCell} ${styles.table__titleCell}`}
-                >
-                  <a
-                    href={`${CAVAN_ORIGIN}/account/reporting/sales/product/${photo.product.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`${styles.table__primary} ${styles.table__link}`}
-                  >
-                    {photo.product.id}
-                  </a>{' '}
-                  <span className={styles.table__secondary}>
-                    {photo.product.fileName}
-                  </span>
-                  <div className={styles.table__secondary}>
-                    {photo.product.headline}
-                  </div>
-                </td>
-                <td>{titleOf(photo)}</td>
-                <td className={styles.table__num}>{photo.sales.length}</td>
-                <td className={`${styles.table__num} ${styles.table__revenue}`}>
-                  {formatMoney(photo.revenue)}
-                </td>
-                <PartnerCells
-                  partners={partners}
-                  byPartner={photo.byPartner}
-                  compact={compact}
-                  sortKey={sortKey}
+                <th aria-label={t('col.preview')} />
+                <SortHeader
+                  label={t('photos.col.photo')}
+                  columnKey="id"
+                  {...header}
                 />
-                <td className={styles.table__num}>
-                  {formatDate(photo.lastSale)}
-                </td>
+                <SortHeader
+                  label={t('col.shoot')}
+                  columnKey="shoot"
+                  {...header}
+                />
+                <SortHeader
+                  label={t('col.sales')}
+                  columnKey="sales"
+                  numeric
+                  {...header}
+                />
+                <SortHeader
+                  label={t('col.revenue')}
+                  columnKey="revenue"
+                  numeric
+                  className={styles.table__revenue}
+                  {...header}
+                />
+                <PartnerHeaders
+                  partners={partners}
+                  compact={compact}
+                  {...header}
+                />
+                <SortHeader
+                  label={t('photos.col.lastSale')}
+                  columnKey="lastSale"
+                  numeric
+                  {...header}
+                />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {sorted.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6 + partnerColumnCount(partners, compact)}
+                    className={styles.table__empty}
+                  >
+                    {query ? t('details.nothingFound') : t('photos.empty')}
+                  </td>
+                </tr>
+              )}
+              {sorted.map((photo) => (
+                <tr key={photo.product.id}>
+                  <td>
+                    <img
+                      src={photo.product.thumbUrl}
+                      alt=""
+                      loading="lazy"
+                      className={styles.table__thumb}
+                    />
+                  </td>
+                  <td
+                    className={`${photoStyles.photoCell} ${styles.table__titleCell}`}
+                  >
+                    <a
+                      href={`${CAVAN_ORIGIN}/account/reporting/sales/product/${photo.product.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`${styles.table__primary} ${styles.table__link}`}
+                    >
+                      {photo.product.id}
+                    </a>{' '}
+                    <span className={styles.table__secondary}>
+                      {photo.product.fileName}
+                    </span>
+                    <div className={styles.table__secondary}>
+                      {photo.product.headline}
+                    </div>
+                  </td>
+                  <td>{titleOf(photo)}</td>
+                  <td className={styles.table__num}>{photo.sales.length}</td>
+                  <td
+                    className={`${styles.table__num} ${styles.table__revenue}`}
+                  >
+                    {formatMoney(photo.revenue)}
+                  </td>
+                  <PartnerCells
+                    partners={partners}
+                    byPartner={photo.byPartner}
+                    compact={compact}
+                    sortKey={sortKey}
+                  />
+                  <td className={styles.table__num}>
+                    {formatDate(photo.lastSale)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   );
 };

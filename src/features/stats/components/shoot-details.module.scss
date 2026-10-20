@@ -162,3 +162,15 @@
     border-color: $color-chart;
   }
 }
+
+// Narrow screens: inputs and selects take the whole row.
+@media (max-width: 647px) {
+  .input {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}

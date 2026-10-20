@@ -26,3 +26,9 @@
     }
   }
 }
+
+@media (max-width: 647px) {
+  .appLayout__content {
+    padding: $spacing-md $spacing-sm;
+  }
+}

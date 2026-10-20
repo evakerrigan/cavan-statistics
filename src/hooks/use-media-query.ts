@@ -13,3 +13,6 @@ export const useMediaQuery = (query: string) =>
 
 /** Below this width tables switch to their compact layout. */
 export const COMPACT_QUERY = '(max-width: 1023px)';
+
+/** Below this width tables turn into cards. */
+export const MOBILE_QUERY = '(max-width: 647px)';

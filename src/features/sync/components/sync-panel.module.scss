@@ -21,6 +21,7 @@
 
   &__actions {
     display: flex;
+    align-items: center;
     gap: $spacing-sm;
     flex-wrap: wrap;
   }
@@ -33,6 +34,17 @@
   &__meta {
     color: $color-text-secondary;
     margin: 0;
+  }
+
+  // «updated / date» next to the buttons, on two lines.
+  &__updated {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 10px;
+    line-height: 1.3;
+    color: #999;
+    white-space: nowrap;
   }
 
   &__note {

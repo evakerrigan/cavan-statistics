@@ -1,15 +1,19 @@
 import { Fragment, useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
-import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
-import type { Translate } from '@/lib/i18n';
+import {
+  COMPACT_QUERY,
+  MOBILE_QUERY,
+  useMediaQuery,
+} from '@/hooks/use-media-query';
 import type { ManualShoot } from '@/types/cavan';
 import { formatDate, formatDuration, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
 import { partnerColumnCount } from '../utils/partner-columns';
-import { shootTitle } from '../utils/shoot-labels';
+import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
 import { PartnerCells, PartnerHeaders } from './partner-columns';
+import { ShootCards } from './shoot-cards';
 import { ShootDetails } from './shoot-details';
 import { SortHeader, StackedSortHeader } from './sort-header';
 import { StackRow } from './stack-row';
@@ -26,23 +30,6 @@ type ShootsTableProps = {
   onUnmergeShoot: (source: string) => void;
 };
 
-const subtitleOf = (shoot: ShootStat, t: Translate) => {
-  const base = baseSubtitleOf(shoot, t);
-  const joined = shoot.mergedFrom.length;
-  return joined ? `${base} · ${t('shoots.sub.joined', { n: joined })}` : base;
-};
-
-const baseSubtitleOf = (shoot: ShootStat, t: Translate) => {
-  if (shoot.kind === 'unmatched') return t('shoots.sub.unmatched');
-  if (shoot.kind === 'manual') return t('shoots.sub.manual');
-  if (shoot.kind === 'legacy') {
-    return shoot.code && shoot.title !== shoot.code
-      ? t('shoots.sub.legacyCode', { code: shoot.code })
-      : t('shoots.sub.legacy');
-  }
-  return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
-};
-
 export const ShootsTable = ({
   shoots,
   partners,
@@ -54,6 +41,7 @@ export const ShootsTable = ({
 }: ShootsTableProps) => {
   const { t } = useI18n();
   const compact = useMediaQuery(COMPACT_QUERY);
+  const mobile = useMediaQuery(MOBILE_QUERY);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const accessors = useMemo<SortAccessors<ShootStat>>(
@@ -85,6 +73,22 @@ export const ShootsTable = ({
   );
   const header = { sortKey, direction, onSort: toggle };
   const columnCount = 7 + partnerColumnCount(partners, compact);
+
+  if (mobile) {
+    return (
+      <ShootCards
+        shoots={sorted}
+        allShoots={shoots}
+        partners={partners}
+        manualShoots={manualShoots}
+        onManualShootsChange={onManualShootsChange}
+        onRenameShoot={onRenameShoot}
+        onMergeShoot={onMergeShoot}
+        onUnmergeShoot={onUnmergeShoot}
+        {...header}
+      />
+    );
+  }
 
   return (
     <div className={styles.tableWrap}>
@@ -183,7 +187,7 @@ export const ShootsTable = ({
                       )}
                     </div>
                     <div className={styles.table__secondary}>
-                      {subtitleOf(shoot, t)}
+                      {shootSubtitle(shoot, t)}
                     </div>
                   </td>
                   <td className={styles.table__compact}>

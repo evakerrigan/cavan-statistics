@@ -103,15 +103,22 @@ export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
                   ? t('sync.quick')
                   : t('sync.first')}
             </Button>
-          </div>
-          <p className={styles.syncPanel__meta}>
-            {syncedAt
-              ? t('sync.updatedAt', {
+            {syncedAt && (
+              <div
+                className={styles.syncPanel__updated}
+                title={t('sync.updatedAt', {
                   date: formatDate(syncedAt),
                   time: formatTime(syncedAt),
-                })
-              : t('sync.noData')}
-          </p>
+                })}
+              >
+                <span>{t('sync.updatedLabel')}</span>
+                <span>{formatDate(syncedAt)}</span>
+              </div>
+            )}
+          </div>
+          {!syncedAt && (
+            <p className={styles.syncPanel__meta}>{t('sync.noData')}</p>
+          )}
         </div>
       </div>
       {!canSync && (
