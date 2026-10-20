@@ -5,38 +5,15 @@
   padding: $spacing-md !important;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: $spacing-md;
-}
-
-.card {
-  display: block;
-  color: $color-text;
-  background: $color-surface;
+.manualBadge {
+  display: inline-block;
+  margin-left: $spacing-sm;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: $color-row-hover;
   border: 1px solid $color-border;
-  border-radius: 8px;
-  padding: $spacing-sm;
-
-  &:hover {
-    text-decoration: none;
-    border-color: $color-text-muted;
-  }
-
-  &__image {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: 4px;
-    display: block;
-    margin-bottom: $spacing-sm;
-  }
-
-  &__info {
-    display: flex;
-    justify-content: space-between;
-    gap: $spacing-sm;
-    font-variant-numeric: tabular-nums;
-  }
+  font-size: 11px;
+  font-weight: 400;
+  color: $color-text-secondary;
+  vertical-align: middle;
 }

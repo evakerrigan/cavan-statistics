@@ -57,6 +57,18 @@ export type MonthSales = {
   items: MonthSaleItem[];
 };
 
+/**
+ * A shoot the user put together by hand, for images Cavan cannot link to any
+ * submission (e.g. very old uploads). Kept separately from the synced data so
+ * re-syncing never touches it.
+ */
+export type ManualShoot = {
+  id: string;
+  title: string;
+  productIds: number[];
+  createdAt: string;
+};
+
 export type Dataset = {
   /** ISO timestamp of the last successful sync. */
   syncedAt: string;

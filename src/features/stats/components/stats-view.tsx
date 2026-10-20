@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Dataset } from '@/types/cavan';
 import { formatMoney } from '@/utils/format';
+import { useManualShoots } from '../hooks/use-manual-shoots';
 import { buildStats } from '../utils/aggregate';
 import { MonthsView } from './months-view';
 import { PhotosTable } from './photos-table';
@@ -21,11 +22,18 @@ type TabId = (typeof TABS)[number]['id'];
 
 export const StatsView = ({ dataset }: StatsViewProps) => {
   const [tab, setTab] = useState<TabId>('shoots');
-  const stats = useMemo(() => buildStats(dataset), [dataset]);
+  const { manualShoots, ready, update } = useManualShoots();
+  const stats = useMemo(
+    () => buildStats(dataset, manualShoots),
+    [dataset, manualShoots]
+  );
+
+  // Wait for the user's own shoots, so «Без съёмки» doesn't flash on load.
+  if (!ready) return null;
 
   const missing = Math.round((stats.cavanTotal - stats.revenue) * 100) / 100;
-  const matchedShoots = stats.shoots.filter((s) => s.id !== null);
-  const unmatched = stats.shoots.find((s) => s.id === null);
+  const matchedShoots = stats.shoots.filter((s) => s.kind !== 'unmatched');
+  const unmatched = stats.shoots.find((s) => s.kind === 'unmatched');
 
   return (
     <div className={styles.stats}>
@@ -74,7 +82,8 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
         <p className={styles.notice}>
           {unmatched.photos.length} фото на {formatMoney(unmatched.revenue)} не
           удалось связать со съёмкой: их имени файла нет ни в одной съёмке из
-          раздела Submit Content. Они собраны в строке «Без съёмки».
+          раздела Submit Content. Откройте строку «Без съёмки», отметьте фото и
+          соберите из них свою съёмку.
         </p>
       )}
 
@@ -94,7 +103,12 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
       </div>
 
       {tab === 'shoots' && (
-        <ShootsTable shoots={stats.shoots} partners={stats.partners} />
+        <ShootsTable
+          shoots={stats.shoots}
+          partners={stats.partners}
+          manualShoots={manualShoots}
+          onManualShootsChange={update}
+        />
       )}
       {tab === 'photos' && (
         <PhotosTable

@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import { formatDate, formatMoney } from '@/utils/format';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
-import type { PhotoStat, ShootStat } from '../utils/aggregate';
+import {
+  type PhotoStat,
+  type ShootStat,
+  UNMATCHED_KEY,
+} from '../utils/aggregate';
 import { SortHeader } from './sort-header';
 import styles from './table.module.scss';
 import photoStyles from './photos-table.module.scss';
@@ -17,10 +21,11 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
   const [query, setQuery] = useState('');
 
   const shootTitles = useMemo(
-    () => new Map(shoots.map((s) => [s.id, s.title])),
+    () => new Map(shoots.map((s) => [s.key, s.title])),
     [shoots]
   );
-  const titleOf = (photo: PhotoStat) => shootTitles.get(photo.shootId) ?? '—';
+  const titleOf = (photo: PhotoStat) =>
+    shootTitles.get(photo.shootKey ?? UNMATCHED_KEY) ?? '—';
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -30,7 +35,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
         String(p.product.id),
         p.product.fileName,
         p.product.headline,
-        shootTitles.get(p.shootId) ?? '',
+        shootTitles.get(p.shootKey ?? UNMATCHED_KEY) ?? '',
       ].some((field) => field.toLowerCase().includes(q))
     );
   }, [photos, query, shootTitles]);
@@ -38,7 +43,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
   const accessors = useMemo<SortAccessors<PhotoStat>>(
     () => ({
       id: (p) => p.product.id,
-      shoot: (p) => shootTitles.get(p.shootId) ?? '',
+      shoot: (p) => shootTitles.get(p.shootKey ?? UNMATCHED_KEY) ?? '',
       sales: (p) => p.sales.length,
       revenue: (p) => p.revenue,
       lastSale: (p) => p.lastSale ?? '',

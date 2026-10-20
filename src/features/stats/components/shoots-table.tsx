@@ -1,8 +1,10 @@
 import { Fragment, useMemo, useState } from 'react';
-import { CAVAN_ORIGIN } from '@/lib/cavan-client';
+import type { ManualShoot } from '@/types/cavan';
 import { formatDate, formatMoney } from '@/utils/format';
+import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
+import { ShootDetails } from './shoot-details';
 import { SortHeader } from './sort-header';
 import styles from './table.module.scss';
 import shootStyles from './shoots-table.module.scss';
@@ -10,22 +12,34 @@ import shootStyles from './shoots-table.module.scss';
 type ShootsTableProps = {
   shoots: ShootStat[];
   partners: string[];
+  manualShoots: ManualShoot[];
+  onManualShootsChange: (update: ManualShootsUpdate) => void;
 };
 
-const shootKey = (shoot: ShootStat) => shoot.id ?? 'unmatched';
+const subtitleOf = (shoot: ShootStat) => {
+  if (shoot.kind === 'unmatched')
+    return 'Отметьте фото и соберите из них свою съёмку';
+  if (shoot.kind === 'manual') return 'Только проданные фото';
+  return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
+};
 
-export const ShootsTable = ({ shoots, partners }: ShootsTableProps) => {
-  const [openKey, setOpenKey] = useState<number | string | null>(null);
+export const ShootsTable = ({
+  shoots,
+  partners,
+  manualShoots,
+  onManualShootsChange,
+}: ShootsTableProps) => {
+  const [openKey, setOpenKey] = useState<string | null>(null);
 
   const accessors = useMemo<SortAccessors<ShootStat>>(
     () => ({
       title: (s) => s.title,
       createdAt: (s) => s.createdAt ?? '',
-      published: (s) => s.publishedCount,
+      published: (s) => s.publishedCount ?? -1,
       sold: (s) => s.photos.length,
       sales: (s) => s.salesCount,
       revenue: (s) => s.revenue,
-      perPhoto: (s) => s.revenuePerPhoto,
+      perPhoto: (s) => s.revenuePerPhoto ?? -1,
       ...Object.fromEntries(
         partners.map((p) => [
           `partner:${p}`,
@@ -91,7 +105,7 @@ export const ShootsTable = ({ shoots, partners }: ShootsTableProps) => {
             </tr>
           )}
           {sorted.map((shoot) => {
-            const key = shootKey(shoot);
+            const key = shoot.key;
             const isOpen = openKey === key;
             return (
               <Fragment key={key}>
@@ -113,18 +127,19 @@ export const ShootsTable = ({ shoots, partners }: ShootsTableProps) => {
                     )}
                   </td>
                   <td>
-                    <div className={styles.table__primary}>{shoot.title}</div>
+                    <div className={styles.table__primary}>
+                      {shoot.title}
+                      {shoot.kind === 'manual' && (
+                        <span className={shootStyles.manualBadge}>своя</span>
+                      )}
+                    </div>
                     <div className={styles.table__secondary}>
-                      {shoot.id === null
-                        ? 'Фото, которые не удалось связать со съёмкой'
-                        : [shoot.code, `#${shoot.id}`]
-                            .filter(Boolean)
-                            .join(' · ')}
+                      {subtitleOf(shoot)}
                     </div>
                   </td>
                   <td>{formatDate(shoot.createdAt)}</td>
                   <td className={styles.table__num}>
-                    {shoot.id === null ? '—' : shoot.publishedCount}
+                    {shoot.publishedCount ?? '—'}
                   </td>
                   <td className={styles.table__num}>{shoot.photos.length}</td>
                   <td className={styles.table__num}>{shoot.salesCount}</td>
@@ -141,7 +156,7 @@ export const ShootsTable = ({ shoots, partners }: ShootsTableProps) => {
                     {formatMoney(shoot.revenue)}
                   </td>
                   <td className={styles.table__num}>
-                    {shoot.id === null
+                    {shoot.revenuePerPhoto === null
                       ? '—'
                       : formatMoney(shoot.revenuePerPhoto)}
                   </td>
@@ -149,38 +164,11 @@ export const ShootsTable = ({ shoots, partners }: ShootsTableProps) => {
                 {isOpen && (
                   <tr>
                     <td colSpan={columnCount} className={shootStyles.details}>
-                      {shoot.photos.length === 0 ? (
-                        <p className={styles.table__secondary}>
-                          Из этой съёмки пока ничего не продалось.
-                        </p>
-                      ) : (
-                        <div className={shootStyles.grid}>
-                          {shoot.photos.map((photo) => (
-                            <a
-                              key={photo.product.id}
-                              href={`${CAVAN_ORIGIN}/account/reporting/sales/product/${photo.product.id}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={shootStyles.card}
-                            >
-                              <img
-                                src={photo.product.thumbUrl}
-                                alt={photo.product.headline}
-                                loading="lazy"
-                                className={shootStyles.card__image}
-                              />
-                              <div className={shootStyles.card__info}>
-                                <span>{photo.product.id}</span>
-                                <strong>{formatMoney(photo.revenue)}</strong>
-                              </div>
-                              <div className={styles.table__secondary}>
-                                {photo.sales.length} прод. · посл.{' '}
-                                {formatDate(photo.lastSale)}
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      )}
+                      <ShootDetails
+                        shoot={shoot}
+                        manualShoots={manualShoots}
+                        onManualShootsChange={onManualShootsChange}
+                      />
                     </td>
                   </tr>
                 )}

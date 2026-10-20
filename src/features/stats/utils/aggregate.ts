@@ -1,28 +1,51 @@
-import type { Dataset, Product, Sale, Shoot } from '@/types/cavan';
+import type {
+  Dataset,
+  ManualShoot,
+  Product,
+  Sale,
+  Shoot,
+  ShootPhoto,
+} from '@/types/cavan';
 
 export type PartnerTotals = Record<string, number>;
 
 export type PhotoStat = {
   product: Product;
-  shootId: number | null;
+  /** {@link ShootStat.key} of the shoot this image belongs to. */
+  shootKey: string | null;
   sales: Sale[];
   revenue: number;
   lastSale: string | null;
   byPartner: PartnerTotals;
 };
 
+/**
+ * - `cavan`: a submission synced from Cavan
+ * - `manual`: a shoot the user created by hand
+ * - `unmatched`: images that belong to no shoot yet
+ */
+export type ShootKind = 'cavan' | 'manual' | 'unmatched';
+
 export type ShootStat = {
-  /** `null` for the bucket of images that could not be matched to a shoot. */
-  id: number | null;
+  key: string;
+  kind: ShootKind;
+  /** Cavan submission ID (`cavan` only). */
+  cavanId: number | null;
+  /** {@link ManualShoot.id} (`manual` only). */
+  manualId: string | null;
   title: string;
   code: string | null;
   createdAt: string | null;
-  publishedCount: number;
+  /** Unknown for manual shoots: only their sold images are known. */
+  publishedCount: number | null;
   thumbUrl: string | null;
+  /** Images with at least one sale. */
   photos: PhotoStat[];
+  /** Published files with no sales (`cavan` only). */
+  unsoldPhotos: ShootPhoto[];
   salesCount: number;
   revenue: number;
-  revenuePerPhoto: number;
+  revenuePerPhoto: number | null;
   lastSale: string | null;
   byPartner: PartnerTotals;
 };
@@ -50,6 +73,10 @@ export type Stats = {
 };
 
 export const UNKNOWN_PARTNER = 'Другое';
+export const UNMATCHED_KEY = 'unmatched';
+
+export const cavanShootKey = (id: number) => `cavan:${id}`;
+export const manualShootKey = (id: string) => `manual:${id}`;
 
 const round = (n: number) => Math.round(n * 100) / 100;
 const normalizeName = (name: string) => name.trim().toLowerCase();
@@ -72,12 +99,15 @@ const dayDistance = (a: string | null, b: string | null) =>
  * there is no shared ID. Match on the original file name, then narrow down
  * duplicates by headline and by publish date.
  */
+export type ShootMatch = { shootId: number; itemId: number };
+
 export const matchProductsToShoots = (
   products: Product[],
   shoots: Shoot[]
-): Map<number, number> => {
+): Map<number, ShootMatch> => {
   type Candidate = {
     shootId: number;
+    itemId: number;
     headline: string | null;
     date: string | null;
   };
@@ -88,6 +118,7 @@ export const matchProductsToShoots = (
     for (const photo of shoot.photos) {
       const candidate = {
         shootId: shoot.id,
+        itemId: photo.itemId,
         headline: photo.headline,
         date: photo.publishedAt,
       };
@@ -100,7 +131,7 @@ export const matchProductsToShoots = (
     }
   }
 
-  const result = new Map<number, number>();
+  const result = new Map<number, ShootMatch>();
   for (const product of products) {
     let candidates = byName.get(normalizeName(product.fileName)) ?? [];
 
@@ -124,7 +155,7 @@ export const matchProductsToShoots = (
         dayDistance(a.date, product.createdAt) -
         dayDistance(b.date, product.createdAt)
     )[0];
-    result.set(product.id, best.shootId);
+    result.set(product.id, { shootId: best.shootId, itemId: best.itemId });
   }
   return result;
 };
@@ -139,8 +170,27 @@ const salesForProduct = (product: Product, dataset: Dataset): Sale[] => {
   );
 };
 
-export const buildStats = (dataset: Dataset): Stats => {
-  const shootOf = matchProductsToShoots(dataset.products, dataset.shoots);
+export const buildStats = (
+  dataset: Dataset,
+  manualShoots: ManualShoot[] = []
+): Stats => {
+  const matches = matchProductsToShoots(dataset.products, dataset.shoots);
+
+  // A manual assignment is the user's explicit choice, so it wins.
+  const shootKeyOf = new Map<number, string>();
+  for (const [productId, match] of matches) {
+    shootKeyOf.set(productId, cavanShootKey(match.shootId));
+  }
+  for (const manual of manualShoots) {
+    for (const productId of manual.productIds) {
+      shootKeyOf.set(productId, manualShootKey(manual.id));
+    }
+  }
+  const soldItemIds = new Set(
+    [...matches]
+      .filter(([productId]) => shootKeyOf.get(productId)?.startsWith('cavan:'))
+      .map(([, match]) => match.itemId)
+  );
 
   const photos: PhotoStat[] = dataset.products.map((product) => {
     const sales = salesForProduct(product, dataset);
@@ -148,7 +198,7 @@ export const buildStats = (dataset: Dataset): Stats => {
     for (const sale of sales) addTo(byPartner, partnerOf(sale), sale.amount);
     return {
       product,
-      shootId: shootOf.get(product.id) ?? null,
+      shootKey: shootKeyOf.get(product.id) ?? null,
       sales,
       revenue: round(sales.reduce((sum, s) => sum + s.amount, 0)),
       lastSale: sales.reduce<string | null>((d, s) => latest(d, s.date), null),
@@ -164,10 +214,20 @@ export const buildStats = (dataset: Dataset): Stats => {
   );
 
   // Shoots
-  const makeShoot = (
-    shoot: Shoot | null,
-    shootPhotos: PhotoStat[]
-  ): ShootStat => {
+  type ShootBase = Pick<
+    ShootStat,
+    | 'key'
+    | 'kind'
+    | 'cavanId'
+    | 'manualId'
+    | 'title'
+    | 'code'
+    | 'createdAt'
+    | 'publishedCount'
+    | 'unsoldPhotos'
+  >;
+
+  const makeShoot = (base: ShootBase, shootPhotos: PhotoStat[]): ShootStat => {
     const byPartner: PartnerTotals = {};
     let salesCount = 0;
     let lastSale: string | null = null;
@@ -179,32 +239,81 @@ export const buildStats = (dataset: Dataset): Stats => {
       }
     }
     const revenue = round(shootPhotos.reduce((sum, p) => sum + p.revenue, 0));
-    const publishedCount = shoot ? shoot.publishedCount : shootPhotos.length;
     return {
-      id: shoot?.id ?? null,
-      title: shoot?.title ?? 'Без съёмки',
-      code: shoot?.code ?? null,
-      createdAt: shoot?.createdAt ?? null,
-      publishedCount,
+      ...base,
       thumbUrl:
-        shootPhotos[0]?.product.thumbUrl ?? shoot?.photos[0]?.thumbUrl ?? null,
+        shootPhotos[0]?.product.thumbUrl ??
+        base.unsoldPhotos[0]?.thumbUrl ??
+        null,
       photos: shootPhotos,
       salesCount,
       revenue,
-      revenuePerPhoto: publishedCount ? round(revenue / publishedCount) : 0,
+      revenuePerPhoto: base.publishedCount
+        ? round(revenue / base.publishedCount)
+        : null,
       lastSale,
       byPartner,
     };
   };
 
+  const photosOf = (key: string | null) =>
+    photos.filter((p) => p.shootKey === key);
+
   const shoots = dataset.shoots.map((shoot) =>
     makeShoot(
-      shoot,
-      photos.filter((p) => p.shootId === shoot.id)
+      {
+        key: cavanShootKey(shoot.id),
+        kind: 'cavan',
+        cavanId: shoot.id,
+        manualId: null,
+        title: shoot.title,
+        code: shoot.code,
+        createdAt: shoot.createdAt,
+        publishedCount: shoot.publishedCount,
+        unsoldPhotos: shoot.photos.filter((p) => !soldItemIds.has(p.itemId)),
+      },
+      photosOf(cavanShootKey(shoot.id))
     )
   );
-  const unmatched = photos.filter((p) => p.shootId === null);
-  if (unmatched.length) shoots.push(makeShoot(null, unmatched));
+  for (const manual of manualShoots) {
+    const shootPhotos = photosOf(manualShootKey(manual.id));
+    if (!shootPhotos.length) continue;
+    shoots.push(
+      makeShoot(
+        {
+          key: manualShootKey(manual.id),
+          kind: 'manual',
+          cavanId: null,
+          manualId: manual.id,
+          title: manual.title,
+          code: null,
+          createdAt: manual.createdAt,
+          publishedCount: null,
+          unsoldPhotos: [],
+        },
+        shootPhotos
+      )
+    );
+  }
+  const unmatched = photosOf(null);
+  if (unmatched.length) {
+    shoots.push(
+      makeShoot(
+        {
+          key: UNMATCHED_KEY,
+          kind: 'unmatched',
+          cavanId: null,
+          manualId: null,
+          title: 'Без съёмки',
+          code: null,
+          createdAt: null,
+          publishedCount: null,
+          unsoldPhotos: [],
+        },
+        unmatched
+      )
+    );
+  }
   shoots.sort((a, b) => b.revenue - a.revenue);
 
   // Months
