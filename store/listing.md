@@ -59,7 +59,7 @@ See what every photo and every shoot actually earns you on Cavan Images.
 
 Cavan shows sales month by month and photo by photo. This extension collects all of it from your own Cavan account and puts it together:
 
-• By shoot — revenue, sales, published and sold photos, revenue per photo, time on sale, split by partner (Adobe, Getty and others). Open a shoot to see its sold photos, and the unsold ones in grey.
+• By shoot — revenue, sales, published and sold photos, revenue per photo, time on sale, split by partner agency. Open a shoot to see its sold photos, and the unsold ones in grey.
 • By photo — every photo that sold, with search and sorting by any column.
 • By month — revenue and number of sales per month, over the size of your portfolio, to see whether more photos mean more money.
 • Portfolio overview — total earnings, sales, photos sold, average per sold photo and per portfolio photo.
@@ -82,7 +82,7 @@ This is an independent project and is not affiliated with Cavan Images.
 
 Cavan показывает продажи по месяцам и по отдельным фото. Расширение собирает всё это из вашего аккаунта Cavan и сводит вместе:
 
-• По съёмкам — доход, продажи, опубликованные и проданные фото, доход на одно фото, срок в продаже, разбивка по партнёрам (Adobe, Getty и другие). Внутри съёмки — проданные фото, а непроданные серым.
+• По съёмкам — доход, продажи, опубликованные и проданные фото, доход на одно фото, срок в продаже, разбивка по партнёрским агентствам. Внутри съёмки — проданные фото, а непроданные серым.
 • По фото — все проданные фото с поиском и сортировкой по любой колонке.
 • По месяцам — доход и число продаж по месяцам на фоне размера портфеля: видно, растёт ли доход вместе с портфелем.
 • Общая статистика — весь доход, продажи, проданные фото, средний доход с проданного фото и на одно фото портфеля.
