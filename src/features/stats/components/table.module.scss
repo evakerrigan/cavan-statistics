@@ -178,3 +178,16 @@
 .table__num .table__stack {
   align-items: flex-end;
 }
+
+// Compact layout below 1024px: tighter cells and a capped shoot / photo
+// column whose long names wrap.
+@media (max-width: $breakpoint-compact) {
+  .table th,
+  .table td {
+    padding: $spacing-sm 10px;
+  }
+
+  .table__titleCell {
+    max-width: 300px;
+  }
+}

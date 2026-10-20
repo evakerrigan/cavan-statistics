@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
+import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
 import { formatDate, formatMoney } from '@/utils/format';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
@@ -8,7 +9,9 @@ import {
   type ShootStat,
   UNMATCHED_KEY,
 } from '../utils/aggregate';
-import { partnerLabel, shootTitle } from '../utils/shoot-labels';
+import { partnerColumnCount } from '../utils/partner-columns';
+import { shootTitle } from '../utils/shoot-labels';
+import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { SortHeader } from './sort-header';
 import styles from './table.module.scss';
 import photoStyles from './photos-table.module.scss';
@@ -21,6 +24,7 @@ type PhotosTableProps = {
 
 export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
   const { t } = useI18n();
+  const compact = useMediaQuery(COMPACT_QUERY);
   const [query, setQuery] = useState('');
 
   const shootTitles = useMemo(
@@ -103,15 +107,11 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                 className={styles.table__revenue}
                 {...header}
               />
-              {partners.map((p) => (
-                <SortHeader
-                  key={p}
-                  label={partnerLabel(p, t)}
-                  columnKey={`partner:${p}`}
-                  numeric
-                  {...header}
-                />
-              ))}
+              <PartnerHeaders
+                partners={partners}
+                compact={compact}
+                {...header}
+              />
               <SortHeader
                 label={t('photos.col.lastSale')}
                 columnKey="lastSale"
@@ -124,7 +124,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
             {sorted.length === 0 && (
               <tr>
                 <td
-                  colSpan={6 + partners.length}
+                  colSpan={6 + partnerColumnCount(partners, compact)}
                   className={styles.table__empty}
                 >
                   {query ? t('details.nothingFound') : t('photos.empty')}
@@ -141,7 +141,9 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                     className={styles.table__thumb}
                   />
                 </td>
-                <td className={photoStyles.photoCell}>
+                <td
+                  className={`${photoStyles.photoCell} ${styles.table__titleCell}`}
+                >
                   <a
                     href={`${CAVAN_ORIGIN}/account/reporting/sales/product/${photo.product.id}`}
                     target="_blank"
@@ -162,11 +164,11 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                 <td className={`${styles.table__num} ${styles.table__revenue}`}>
                   {formatMoney(photo.revenue)}
                 </td>
-                {partners.map((p) => (
-                  <td key={p} className={styles.table__num}>
-                    {photo.byPartner[p] ? formatMoney(photo.byPartner[p]) : '—'}
-                  </td>
-                ))}
+                <PartnerCells
+                  partners={partners}
+                  byPartner={photo.byPartner}
+                  compact={compact}
+                />
                 <td className={styles.table__num}>
                   {formatDate(photo.lastSale)}
                 </td>

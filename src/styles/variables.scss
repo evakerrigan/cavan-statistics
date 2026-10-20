@@ -49,3 +49,6 @@ $breakpoint-sm: 576px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 992px;
 $breakpoint-xl: 1200px;
+// Below this width tables and summary tiles switch to a compact layout
+// (keep in sync with COMPACT_QUERY in hooks/use-media-query.ts).
+$breakpoint-compact: 1023px;

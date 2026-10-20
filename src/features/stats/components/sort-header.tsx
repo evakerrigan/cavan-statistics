@@ -1,7 +1,7 @@
 import type { SortDirection } from '../hooks/use-sort';
 import styles from './table.module.scss';
 
-type SortState = {
+export type SortState = {
   sortKey: string;
   direction: SortDirection;
   onSort: (key: string) => void;

@@ -50,6 +50,32 @@
   }
 }
 
+// Compact layout below 1024px: smaller tiles, closer together.
+@media (max-width: $breakpoint-compact) {
+  .tiles {
+    gap: $spacing-sm;
+    margin-bottom: $spacing-sm;
+  }
+
+  .tile {
+    min-width: 96px;
+    padding: $spacing-sm $spacing-md $spacing-sm $spacing-sm;
+
+    &__label {
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    &__value {
+      font-size: 1.15rem;
+    }
+
+    &__hero {
+      font-size: 1.5rem;
+    }
+  }
+}
+
 .notice {
   padding: $spacing-sm $spacing-md;
   background: $color-surface;

@@ -1,14 +1,18 @@
 import { Fragment, useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
+import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
 import type { Translate } from '@/lib/i18n';
 import type { ManualShoot } from '@/types/cavan';
 import { formatDate, formatDuration, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
-import { partnerLabel, shootTitle } from '../utils/shoot-labels';
+import { partnerColumnCount } from '../utils/partner-columns';
+import { shootTitle } from '../utils/shoot-labels';
+import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { ShootDetails } from './shoot-details';
 import { SortHeader, StackedSortHeader } from './sort-header';
+import { StackRow } from './stack-row';
 import styles from './table.module.scss';
 import shootStyles from './shoots-table.module.scss';
 
@@ -39,19 +43,6 @@ const baseSubtitleOf = (shoot: ShootStat, t: Translate) => {
   return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
 };
 
-const StackRow = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) => (
-  <>
-    <span className={styles.table__stackLabel}>{label}</span>
-    <span className={styles.table__pairsValue}>{value}</span>
-  </>
-);
-
 export const ShootsTable = ({
   shoots,
   partners,
@@ -62,6 +53,7 @@ export const ShootsTable = ({
   onUnmergeShoot,
 }: ShootsTableProps) => {
   const { t } = useI18n();
+  const compact = useMediaQuery(COMPACT_QUERY);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
   const accessors = useMemo<SortAccessors<ShootStat>>(
@@ -92,7 +84,7 @@ export const ShootsTable = ({
     'revenue'
   );
   const header = { sortKey, direction, onSort: toggle };
-  const columnCount = 7 + partners.length;
+  const columnCount = 7 + partnerColumnCount(partners, compact);
 
   return (
     <div className={styles.tableWrap}>
@@ -111,8 +103,20 @@ export const ShootsTable = ({
             />
             <StackedSortHeader
               columns={[
-                { label: t('shoots.col.published'), columnKey: 'published' },
-                { label: t('shoots.col.sold'), columnKey: 'sold' },
+                {
+                  label: t(
+                    compact
+                      ? 'shoots.col.publishedShort'
+                      : 'shoots.col.published'
+                  ),
+                  columnKey: 'published',
+                },
+                {
+                  label: t(
+                    compact ? 'shoots.col.soldShort' : 'shoots.col.sold'
+                  ),
+                  columnKey: 'sold',
+                },
               ]}
               numeric
               {...header}
@@ -136,15 +140,7 @@ export const ShootsTable = ({
               numeric
               {...header}
             />
-            {partners.map((p) => (
-              <SortHeader
-                key={p}
-                label={partnerLabel(p, t)}
-                columnKey={`partner:${p}`}
-                numeric
-                {...header}
-              />
-            ))}
+            <PartnerHeaders partners={partners} compact={compact} {...header} />
           </tr>
         </thead>
         <tbody>
@@ -177,7 +173,7 @@ export const ShootsTable = ({
                       <div className={styles.table__thumb} />
                     )}
                   </td>
-                  <td>
+                  <td className={styles.table__titleCell}>
                     <div className={styles.table__primary}>
                       {shootTitle(shoot, t)}
                       {shoot.kind === 'manual' && (
@@ -219,13 +215,11 @@ export const ShootsTable = ({
                       ? '—'
                       : formatMoney(shoot.revenuePerPhoto)}
                   </td>
-                  {partners.map((p) => (
-                    <td key={p} className={styles.table__num}>
-                      {shoot.byPartner[p]
-                        ? formatMoney(shoot.byPartner[p])
-                        : '—'}
-                    </td>
-                  ))}
+                  <PartnerCells
+                    partners={partners}
+                    byPartner={shoot.byPartner}
+                    compact={compact}
+                  />
                 </tr>
                 {isOpen && (
                   <tr>
