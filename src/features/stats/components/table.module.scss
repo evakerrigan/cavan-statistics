@@ -1,0 +1,95 @@
+@use '../../../styles/variables' as *;
+
+.tableWrap {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $spacing-sm $spacing-md;
+    text-align: left;
+    border-bottom: 1px solid $color-border;
+    vertical-align: middle;
+  }
+
+  th {
+    font-size: 12px;
+    font-weight: 600;
+    color: $color-text-secondary;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  &__num {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &__sort {
+    font-weight: inherit;
+    color: inherit;
+    font-size: inherit;
+
+    &:hover {
+      color: $color-text;
+    }
+  }
+
+  &__sortActive {
+    color: $color-text;
+  }
+
+  &__clickable {
+    cursor: pointer;
+
+    &:hover td {
+      background: $color-row-hover;
+    }
+  }
+
+  &__thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+    background: $color-border;
+  }
+
+  &__primary {
+    font-weight: 600;
+    color: $color-text;
+    line-height: 1.4;
+  }
+
+  &__secondary {
+    font-size: 12px;
+    line-height: 1.4;
+    color: $color-text-muted;
+  }
+
+  &__link {
+    color: $color-chart;
+  }
+
+  &__strong {
+    font-weight: 700;
+  }
+
+  &__empty {
+    padding: $spacing-xl !important;
+    text-align: center !important;
+    color: $color-text-muted;
+  }
+}

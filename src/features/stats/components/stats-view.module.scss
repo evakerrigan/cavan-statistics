@@ -1,0 +1,75 @@
+@use '../../../styles/variables' as *;
+
+.stats {
+  width: 100%;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.tile {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  padding: $spacing-md;
+
+  &__label {
+    font-size: 12px;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $color-text;
+    white-space: nowrap;
+  }
+
+  &__hero {
+    font-size: 2rem;
+  }
+
+  &__of {
+    font-size: $font-size-base;
+    font-weight: 400;
+    color: $color-text-muted;
+  }
+}
+
+.notice {
+  padding: $spacing-sm $spacing-md;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-left: 3px solid $color-chart;
+  border-radius: 4px;
+  color: $color-text-secondary;
+}
+
+.tabs {
+  display: flex;
+  gap: $spacing-lg;
+  border-bottom: 1px solid $color-border;
+  margin: $spacing-lg 0 $spacing-md 0;
+}
+
+.tab {
+  padding: $spacing-sm 0 !important;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent !important;
+  color: $color-text-secondary;
+  font-weight: 600;
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+.tabActive {
+  color: $color-text;
+  border-bottom-color: $color-text !important;
+}

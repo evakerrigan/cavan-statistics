@@ -1,0 +1,44 @@
+// Цвета из дизайн-системы
+
+$color-main-bg: #f7f7f7; // Светлый фон главной области
+$color-surface: #ffffff; // Карточки и таблицы
+$color-border: #e6e6e3; // Разделители, линии сетки
+$color-text: #0b0b0b;
+$color-text-secondary: #52514e;
+$color-text-muted: #8a8984;
+$color-accent: #0b0b0b; // Основные кнопки
+$color-accent-text: #ffffff;
+$color-chart: #2a78d6; // Столбцы графика
+$color-row-hover: #f3f3f1;
+
+//стили ErrorBoundary
+$danger-color: #c24f59;
+$danger-color-bg: #fef2f3;
+$danger-color-dark: #672a30;
+
+// Типографика
+$font-family-base:
+  'Poppins',
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  Roboto,
+  sans-serif;
+$font-size-base: 14px;
+$font-size-mini: 11px;
+// Отступы
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// Тени
+$box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+$box-shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.15);
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;

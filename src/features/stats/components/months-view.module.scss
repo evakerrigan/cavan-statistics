@@ -1,0 +1,141 @@
+@use '../../../styles/variables' as *;
+
+$plot-height: 240px;
+$axis-width: 48px;
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-md;
+}
+
+.title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.ranges {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.range {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid $color-border !important;
+  background: $color-surface !important;
+  color: $color-text-secondary;
+  font-size: 12px;
+
+  &:hover {
+    color: $color-text;
+  }
+}
+
+.rangeActive {
+  background: $color-accent !important;
+  border-color: $color-accent !important;
+  color: $color-accent-text !important;
+}
+
+.chart {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  padding: $spacing-lg $spacing-md $spacing-md $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.plot {
+  position: relative;
+  height: $plot-height;
+  margin-left: $axis-width;
+}
+
+.gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid $color-border;
+}
+
+.tick {
+  position: absolute;
+  right: 100%;
+  margin-right: $spacing-sm;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: $color-text-muted;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.columns {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.slot {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 1px;
+}
+
+.bar {
+  width: 100%;
+  max-width: 24px;
+  background: $color-chart;
+  border-radius: 4px 4px 0 0;
+  transition: opacity 0.15s ease;
+}
+
+.barDim {
+  opacity: 0.45;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  min-width: 140px;
+  padding: $spacing-sm $spacing-md;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 6px;
+  box-shadow: $box-shadow-lg;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltipMuted {
+  color: $color-text-secondary;
+}
+
+.labels {
+  display: flex;
+  margin-left: $axis-width;
+  margin-top: $spacing-xs;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 11px;
+  color: $color-text-muted;
+  white-space: nowrap;
+  overflow: visible;
+}

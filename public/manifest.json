@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Cavan Statistics",
+  "version": "0.1.0",
+  "description": "Статистика продаж Cavan Images по фотографиям и съёмкам.",
+  "action": {
+    "default_title": "Cavan Statistics"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "unlimitedStorage", "scripting"],
+  "host_permissions": ["https://www.cavanimages.com/*"]
+}

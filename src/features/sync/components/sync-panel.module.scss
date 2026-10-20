@@ -1,0 +1,66 @@
+@use '../../../styles/variables' as *;
+
+.syncPanel {
+  margin-bottom: $spacing-lg;
+
+  &__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-size: 1.75rem;
+    margin: 0 0 $spacing-xs 0;
+  }
+
+  &__meta {
+    color: $color-text-secondary;
+    margin: 0;
+  }
+
+  &__note {
+    color: $color-text-muted;
+    font-size: 12px;
+    margin: $spacing-sm 0 0 0;
+  }
+
+  &__progress {
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: 8px;
+  }
+
+  &__progressLabel {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacing-md;
+    margin-bottom: $spacing-sm;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__bar {
+    height: 6px;
+    background: $color-border;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  &__barFill {
+    height: 100%;
+    background: $color-chart;
+    transition: width 0.3s ease;
+  }
+
+  &__error {
+    margin: $spacing-md 0 0 0;
+    padding: $spacing-sm $spacing-md;
+    background: $danger-color-bg;
+    color: $danger-color-dark;
+    border-radius: 8px;
+  }
+}
