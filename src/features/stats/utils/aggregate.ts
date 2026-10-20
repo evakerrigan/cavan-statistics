@@ -184,16 +184,31 @@ export const matchProductsToShoots = (
   return result;
 };
 
-/** `CR_KSLI210609-767409-01.jpg` -> `{ code: 'KSLI210609', itemId: 767409 }` */
-export const parseCavanFileName = (name: string) => {
-  const m = /^CR_([A-Za-z0-9]+)-(\d+)-/.exec(name);
+/**
+ * `CR_KSLI210609-767409-01.jpg` -> `{ code: 'KSLI210609', itemId: 767409 }`.
+ * The collection prefix varies (`CR_`, `R_`, …), so any prefix is accepted.
+ */
+export const parseCavanFileName = (name: string | null) => {
+  const m = /^(?:[A-Za-z]+_)?([A-Za-z0-9]+)-(\d+)-\d+/.exec(name ?? '');
   return m ? { code: m[1], itemId: Number(m[2]) } : null;
 };
 
+/** Values that map to exactly one shoot; ambiguous ones are dropped. */
+const uniqueIndex = (entries: [string, number][]) => {
+  const index = new Map<string, number | null>();
+  for (const [key, shootId] of entries) {
+    const seen = index.get(key);
+    index.set(key, seen === undefined || seen === shootId ? shootId : null);
+  }
+  return index;
+};
+
 /**
- * The shoot of every portfolio image, by product ID. This is exact: the
- * portfolio file name carries the submission item ID. Images whose Cavan shoot
- * has no visible submission (very old uploads) are grouped by that shoot.
+ * The shoot of every portfolio image, by product ID. The portfolio file name
+ * carries the submission item ID, which links an image to its submission
+ * exactly; the shoot code and the original file name are fallbacks. Images
+ * whose Cavan shoot has no visible submission (very old uploads) are grouped
+ * by that shoot.
  */
 export const groupPortfolio = (
   portfolio: PortfolioItem[],
@@ -203,11 +218,24 @@ export const groupPortfolio = (
   for (const shoot of shoots) {
     for (const photo of shoot.photos) batchOfItem.set(photo.itemId, shoot.id);
   }
+  const batchOfCode = uniqueIndex(
+    shoots.flatMap((s) => (s.code ? [[s.code, s.id] as [string, number]] : []))
+  );
+  const batchOfName = uniqueIndex(
+    shoots.flatMap((s) =>
+      s.photos.map((p) => [normalizeName(p.fileName), s.id] as [string, number])
+    )
+  );
+
   const batchOfShoot = new Map<number, number>();
   for (const item of portfolio) {
-    const itemId = parseCavanFileName(item.cavanFileName)?.itemId;
-    const batchId = itemId === undefined ? undefined : batchOfItem.get(itemId);
-    if (batchId !== undefined) batchOfShoot.set(item.shootId, batchId);
+    const parsed = parseCavanFileName(item.cavanFileName);
+    const batchId =
+      (parsed && batchOfItem.get(parsed.itemId)) ??
+      (parsed && batchOfCode.get(parsed.code)) ??
+      batchOfName.get(normalizeName(item.fileName)) ??
+      undefined;
+    if (batchId) batchOfShoot.set(item.shootId, batchId);
   }
   return new Map(
     portfolio.map((item) => {

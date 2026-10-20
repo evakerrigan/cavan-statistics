@@ -22,9 +22,9 @@ const subtitleOf = (shoot: ShootStat) => {
     return 'Отметьте фото и соберите из них свою съёмку';
   if (shoot.kind === 'manual') return 'Только проданные фото';
   if (shoot.kind === 'legacy') {
-    return shoot.title === shoot.code
-      ? 'Старая съёмка, нет в Submit Content'
-      : `${shoot.code} · старая съёмка`;
+    return shoot.code && shoot.title !== shoot.code
+      ? `${shoot.code} · старая съёмка`
+      : 'Старая съёмка, нет в Submit Content';
   }
   return [shoot.code, `#${shoot.cavanId}`].filter(Boolean).join(' · ');
 };
