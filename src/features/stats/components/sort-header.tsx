@@ -65,17 +65,23 @@ type StackedSortHeaderProps = SortState & {
   /** One sort button per line, matching the stacked values in the cells. */
   columns: { label: string; columnKey: string }[];
   numeric?: boolean;
+  className?: string;
 };
 
 export const StackedSortHeader = ({
   columns,
   numeric = false,
+  className,
   ...sort
 }: StackedSortHeaderProps) => {
   const active = columns.some((c) => c.columnKey === sort.sortKey);
   return (
     <th
-      className={numeric ? styles.table__num : undefined}
+      className={
+        [numeric ? styles.table__num : '', className]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
       aria-sort={ariaSort(active, sort.direction)}
     >
       <div className={styles.table__stack}>

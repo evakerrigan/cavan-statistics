@@ -37,6 +37,7 @@
   }
 
   &__sort {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -62,8 +63,12 @@
     color: $color-chart;
   }
 
-  // Faint arrow on other sortable columns, shown on hover.
+  // Faint arrow on other sortable columns, shown on hover. Positioned out
+  // of the flow so the hidden arrow doesn't widen the column.
   &__sortHint {
+    position: absolute;
+    left: 100%;
+    margin-left: 2px;
     font-size: 13px;
     line-height: 1;
     color: $color-text-muted;
@@ -115,6 +120,11 @@
     font-size: 12px;
     line-height: 1.4;
     color: $color-text-muted;
+  }
+
+  // Smaller text for secondary columns, to keep the table narrow.
+  &__compact {
+    font-size: 12px;
   }
 
   &__stack {

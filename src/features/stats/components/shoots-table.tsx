@@ -106,6 +106,7 @@ export const ShootsTable = ({
                 { label: t('shoots.col.created'), columnKey: 'createdAt' },
                 { label: t('shoots.col.onSale'), columnKey: 'onSale' },
               ]}
+              className={styles.table__compact}
               {...header}
             />
             <StackedSortHeader
@@ -189,7 +190,7 @@ export const ShootsTable = ({
                       {subtitleOf(shoot, t)}
                     </div>
                   </td>
-                  <td>
+                  <td className={styles.table__compact}>
                     <div className={styles.table__stack}>
                       <span>{formatDate(shoot.createdAt)}</span>
                       <span>{formatDuration(shoot.publishedAt)}</span>
