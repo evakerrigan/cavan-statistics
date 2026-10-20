@@ -90,6 +90,8 @@ export type Stats = {
   /** Sales that Cavan reports without an image (e.g. one-time payments). */
   otherRevenue: number;
   cavanTotal: number;
+  /** Go-live dates of the images in the portfolio, oldest first. */
+  portfolioDates: string[];
 };
 
 /** Partner key for sales without one; shown translated in the UI. */
@@ -609,5 +611,6 @@ export const buildStats = (
     months,
     otherRevenue,
     cavanTotal: dataset.cavanTotal,
+    portfolioDates: portfolio.map((p) => p.createdAt).sort(),
   };
 };

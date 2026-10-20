@@ -112,6 +112,11 @@ export const en = {
   'months.all': 'All time',
   'months.tooltipSales': 'sales: {n}',
   'months.col.month': 'Month',
+  'months.salesTitle': 'Sales by month',
+  'months.legendRevenue': 'Revenue',
+  'months.legendSales': 'Number of sales',
+  'months.legendPortfolio': 'Photos in portfolio (right scale)',
+  'months.tooltipPortfolio': 'in portfolio: {n}',
 
   'data.deleteAll': 'Delete all data',
   'data.deleteTitle': 'Delete all data?',
@@ -238,6 +243,11 @@ export const ru: Messages = {
   'months.all': 'Всё время',
   'months.tooltipSales': 'продаж: {n}',
   'months.col.month': 'Месяц',
+  'months.salesTitle': 'Продажи по месяцам',
+  'months.legendRevenue': 'Доход',
+  'months.legendSales': 'Количество продаж',
+  'months.legendPortfolio': 'Фото в портфеле (шкала справа)',
+  'months.tooltipPortfolio': 'в портфеле: {n}',
 
   'data.deleteAll': 'Удалить все данные',
   'data.deleteTitle': 'Удалить все данные?',

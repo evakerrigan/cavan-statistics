@@ -164,7 +164,11 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
         />
       )}
       {tab === 'months' && (
-        <MonthsView months={stats.months} partners={stats.partners} />
+        <MonthsView
+          months={stats.months}
+          partners={stats.partners}
+          portfolioDates={stats.portfolioDates}
+        />
       )}
     </div>
   );

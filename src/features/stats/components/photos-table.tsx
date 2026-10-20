@@ -96,6 +96,13 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                 numeric
                 {...header}
               />
+              <SortHeader
+                label={t('col.revenue')}
+                columnKey="revenue"
+                numeric
+                className={styles.table__revenue}
+                {...header}
+              />
               {partners.map((p) => (
                 <SortHeader
                   key={p}
@@ -105,13 +112,6 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                   {...header}
                 />
               ))}
-              <SortHeader
-                label={t('col.revenue')}
-                columnKey="revenue"
-                numeric
-                className={styles.table__revenue}
-                {...header}
-              />
               <SortHeader
                 label={t('photos.col.lastSale')}
                 columnKey="lastSale"
@@ -159,14 +159,14 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                 </td>
                 <td>{titleOf(photo)}</td>
                 <td className={styles.table__num}>{photo.sales.length}</td>
+                <td className={`${styles.table__num} ${styles.table__revenue}`}>
+                  {formatMoney(photo.revenue)}
+                </td>
                 {partners.map((p) => (
                   <td key={p} className={styles.table__num}>
                     {photo.byPartner[p] ? formatMoney(photo.byPartner[p]) : '—'}
                   </td>
                 ))}
-                <td className={`${styles.table__num} ${styles.table__revenue}`}>
-                  {formatMoney(photo.revenue)}
-                </td>
                 <td className={styles.table__num}>
                   {formatDate(photo.lastSale)}
                 </td>

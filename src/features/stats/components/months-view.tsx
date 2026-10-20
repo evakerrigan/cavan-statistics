@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import type { MessageKey } from '@/lib/i18n';
-import { formatMoney, formatMonth, formatMonthShort } from '@/utils/format';
+import { formatMoney, formatMonth } from '@/utils/format';
 import type { MonthStat } from '../utils/aggregate';
 import { partnerLabel } from '../utils/shoot-labels';
+import { MonthsChart } from './months-chart';
 import styles from './table.module.scss';
 import chartStyles from './months-view.module.scss';
 
 type MonthsViewProps = {
   months: MonthStat[];
   partners: string[];
+  /** Go-live dates of the portfolio images, oldest first. */
+  portfolioDates: string[];
 };
 
 const RANGES: { label: MessageKey; count: number }[] = [
@@ -38,30 +41,30 @@ const fillMonths = (months: MonthStat[]): MonthStat[] => {
   return result;
 };
 
-/** A round axis maximum with 4–5 clean ticks. */
-const niceTicks = (max: number) => {
-  if (max <= 0) return [0];
-  const rough = max / 4;
-  const pow = 10 ** Math.floor(Math.log10(rough));
-  const step = [1, 2, 5, 10].map((k) => k * pow).find((s) => s >= rough)!;
-  const ticks = [];
-  for (let t = 0; t <= max + step * 0.999; t += step) ticks.push(t);
-  return ticks;
-};
+/** Images already published by the end of each month. */
+const portfolioAtMonthEnd = (months: MonthStat[], dates: string[]) =>
+  months.map((m) => dates.filter((d) => d.slice(0, 7) <= m.key).length);
 
-export const MonthsView = ({ months, partners }: MonthsViewProps) => {
+export const MonthsView = ({
+  months,
+  partners,
+  portfolioDates,
+}: MonthsViewProps) => {
   const { t } = useI18n();
   const [range, setRange] = useState<number>(24);
-  const [hovered, setHovered] = useState<string | null>(null);
 
   const allMonths = useMemo(() => fillMonths(months), [months]);
   const visible = useMemo(
     () => (Number.isFinite(range) ? allMonths.slice(-range) : allMonths),
     [allMonths, range]
   );
-  const ticks = niceTicks(Math.max(0, ...visible.map((m) => m.revenue)));
-  const axisMax = ticks[ticks.length - 1] || 1;
-  const labelEvery = Math.ceil(visible.length / 24);
+  const portfolio = useMemo(
+    () =>
+      portfolioDates.length
+        ? portfolioAtMonthEnd(visible, portfolioDates)
+        : null,
+    [visible, portfolioDates]
+  );
 
   return (
     <>
@@ -86,61 +89,46 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
         </div>
       </div>
 
-      <div className={chartStyles.chart}>
-        <div className={chartStyles.plot}>
-          {ticks.map((tick) => (
-            <div
-              key={tick}
-              className={chartStyles.gridline}
-              style={{ bottom: `${(tick / axisMax) * 100}%` }}
-            >
-              <span className={chartStyles.tick}>${tick}</span>
+      <MonthsChart
+        months={visible}
+        value={(m) => m.revenue}
+        formatValue={formatMoney}
+        formatTick={(tick) => `$${tick}`}
+        seriesLabel={t('months.legendRevenue')}
+        portfolio={portfolio}
+        tooltipExtra={(m) => (
+          <>
+            <div className={chartStyles.tooltipMuted}>
+              {t('months.tooltipSales', { n: m.salesCount })}
             </div>
-          ))}
-          <div className={chartStyles.columns}>
-            {visible.map((m) => (
-              <div
-                key={m.key}
-                className={chartStyles.slot}
-                onMouseEnter={() => setHovered(m.key)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <div
-                  className={`${chartStyles.bar} ${hovered && hovered !== m.key ? chartStyles.barDim : ''}`}
-                  style={{ height: `${(m.revenue / axisMax) * 100}%` }}
-                />
-                {hovered === m.key && (
-                  <div className={chartStyles.tooltip} role="tooltip">
-                    <strong>{formatMonth(m.key)}</strong>
-                    <div>{formatMoney(m.revenue)}</div>
-                    <div className={chartStyles.tooltipMuted}>
-                      {t('months.tooltipSales', { n: m.salesCount })}
-                    </div>
-                    {partners
-                      .filter((p) => m.byPartner[p])
-                      .map((p) => (
-                        <div key={p} className={chartStyles.tooltipMuted}>
-                          {partnerLabel(p, t)}: {formatMoney(m.byPartner[p])}
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            {partners
+              .filter((p) => m.byPartner[p])
+              .map((p) => (
+                <div key={p} className={chartStyles.tooltipMuted}>
+                  {partnerLabel(p, t)}: {formatMoney(m.byPartner[p])}
+                </div>
+              ))}
+          </>
+        )}
+      />
+
+      <h2 className={`${chartStyles.title} ${chartStyles.titleSpaced}`}>
+        {t('months.salesTitle')}
+      </h2>
+      <MonthsChart
+        months={visible}
+        value={(m) => m.salesCount}
+        formatValue={(n) => t('months.tooltipSales', { n })}
+        formatTick={String}
+        integer
+        seriesLabel={t('months.legendSales')}
+        portfolio={portfolio}
+        tooltipExtra={(m) => (
+          <div className={chartStyles.tooltipMuted}>
+            {formatMoney(m.revenue)}
           </div>
-        </div>
-        <div className={chartStyles.labels}>
-          {visible.map((m, i) => (
-            <span key={m.key} className={chartStyles.label}>
-              {i % labelEvery === 0
-                ? m.key.endsWith('-01') || i === 0
-                  ? formatMonth(m.key)
-                  : formatMonthShort(m.key)
-                : ''}
-            </span>
-          ))}
-        </div>
-      </div>
+        )}
+      />
 
       <div className={styles.tableWrap}>
         <table className={styles.table}>
@@ -148,14 +136,14 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
             <tr>
               <th>{t('months.col.month')}</th>
               <th className={styles.table__num}>{t('col.sales')}</th>
+              <th className={`${styles.table__num} ${styles.table__revenue}`}>
+                {t('col.revenue')}
+              </th>
               {partners.map((p) => (
                 <th key={p} className={styles.table__num}>
                   {partnerLabel(p, t)}
                 </th>
               ))}
-              <th className={`${styles.table__num} ${styles.table__revenue}`}>
-                {t('col.revenue')}
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -166,16 +154,16 @@ export const MonthsView = ({ months, partners }: MonthsViewProps) => {
                 <tr key={m.key}>
                   <td>{formatMonth(m.key)}</td>
                   <td className={styles.table__num}>{m.salesCount}</td>
-                  {partners.map((p) => (
-                    <td key={p} className={styles.table__num}>
-                      {m.byPartner[p] ? formatMoney(m.byPartner[p]) : '—'}
-                    </td>
-                  ))}
                   <td
                     className={`${styles.table__num} ${styles.table__revenue}`}
                   >
                     {formatMoney(m.revenue)}
                   </td>
+                  {partners.map((p) => (
+                    <td key={p} className={styles.table__num}>
+                      {m.byPartner[p] ? formatMoney(m.byPartner[p]) : '—'}
+                    </td>
+                  ))}
                 </tr>
               ))}
           </tbody>
