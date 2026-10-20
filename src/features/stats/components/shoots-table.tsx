@@ -152,7 +152,7 @@ export const ShootsTable = ({
                         src={shoot.thumbUrl}
                         alt=""
                         loading="lazy"
-                        className={styles.table__thumb}
+                        className={`${styles.table__thumb} ${shoot.photos.length ? '' : styles.table__thumbUnsold}`}
                       />
                     ) : (
                       <div className={styles.table__thumb} />

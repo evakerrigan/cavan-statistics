@@ -63,13 +63,22 @@
     }
   }
 
+  // Fixed size: the global `img { max-width: 100% }` would otherwise let a
+  // narrow table squeeze the preview into a sliver.
   &__thumb {
     width: 56px;
+    min-width: 56px;
+    max-width: none;
     height: 56px;
     object-fit: cover;
     border-radius: 4px;
     display: block;
     background: $color-border;
+  }
+
+  &__thumbUnsold {
+    filter: grayscale(1);
+    opacity: 0.6;
   }
 
   &__primary {

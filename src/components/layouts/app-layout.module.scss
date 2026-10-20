@@ -2,6 +2,7 @@
 
 .appLayout {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: $color-main-bg;
 
@@ -11,5 +12,17 @@
     width: 100%;
     display: flex;
     justify-content: center;
+  }
+
+  &__footer {
+    padding: $spacing-md $spacing-lg $spacing-lg;
+    border-top: 1px solid $color-border;
+    text-align: center;
+    font-size: 12px;
+    color: $color-text-muted;
+
+    a {
+      color: $color-chart;
+    }
   }
 }

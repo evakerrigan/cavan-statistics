@@ -18,14 +18,14 @@ export const DashboardRoute = () => {
 
   return (
     <div className={styles.dashboard}>
-      <SyncPanel syncedAt={dataset?.syncedAt ?? null} onSynced={setDataset} />
+      <SyncPanel dataset={dataset} onSynced={setDataset} />
       {loaded && dataset && <StatsView dataset={dataset} />}
       {loaded && !dataset && (
         <div className={styles.dashboard__empty}>
           <p>
             Откройте cavanimages.com в этом браузере, войдите в аккаунт и
             нажмите «Обновить данные». Плагин соберёт все продажи и съёмки — это
-            займёт пару минут.
+            займёт несколько минут.
           </p>
         </div>
       )}

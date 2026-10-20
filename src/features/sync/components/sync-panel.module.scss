@@ -11,6 +11,12 @@
     flex-wrap: wrap;
   }
 
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+  }
+
   &__title {
     font-size: 1.75rem;
     margin: 0 0 $spacing-xs 0;

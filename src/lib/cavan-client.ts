@@ -8,7 +8,10 @@
 
 export const CAVAN_ORIGIN = 'https://www.cavanimages.com';
 const CAVAN_TAB_URL = `${CAVAN_ORIGIN}/account/reporting/sales`;
-const REQUEST_DELAY_MS = 300;
+// Requests go strictly one at a time, with a random 1–2 s pause between
+// them, to keep the load on Cavan low. A full sync takes a few minutes.
+const REQUEST_DELAY_MIN_MS = 1000;
+const REQUEST_DELAY_MAX_MS = 2000;
 
 export class CavanAuthError extends Error {
   constructor() {
@@ -23,6 +26,12 @@ export const isExtensionContext = (): boolean =>
   typeof chrome !== 'undefined' && !!chrome.scripting;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+const pause = () =>
+  sleep(
+    REQUEST_DELAY_MIN_MS +
+      Math.random() * (REQUEST_DELAY_MAX_MS - REQUEST_DELAY_MIN_MS)
+  );
 
 const waitForTabLoad = (tabId: number) =>
   new Promise<void>((resolve) => {
@@ -91,7 +100,7 @@ export const openCavanSession = async (): Promise<CavanSession> => {
       },
     });
 
-    await sleep(REQUEST_DELAY_MS);
+    await pause();
 
     const result = injection?.result;
     if (!result || result.status === 401 || result.status === 419) {

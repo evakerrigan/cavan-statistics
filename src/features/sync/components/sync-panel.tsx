@@ -8,21 +8,26 @@ import { collectDataset, type SyncProgress } from '../collect';
 import styles from './sync-panel.module.scss';
 
 type SyncPanelProps = {
-  syncedAt: string | null;
+  /** Data from the previous update, if any. */
+  dataset: Dataset | null;
   onSynced: (dataset: Dataset) => void;
 };
 
-export const SyncPanel = ({ syncedAt, onSynced }: SyncPanelProps) => {
+export const SyncPanel = ({ dataset, onSynced }: SyncPanelProps) => {
+  const syncedAt = dataset?.syncedAt ?? null;
   const [progress, setProgress] = useState<SyncProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const canSync = isExtensionContext();
 
-  const handleSync = async () => {
+  const handleSync = async (full: boolean) => {
     setError(null);
     try {
-      const dataset = await collectDataset(setProgress);
-      await saveDataset(dataset);
-      onSynced(dataset);
+      const next = await collectDataset(setProgress, {
+        previous: dataset,
+        full,
+      });
+      await saveDataset(next);
+      onSynced(next);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -41,17 +46,37 @@ export const SyncPanel = ({ syncedAt, onSynced }: SyncPanelProps) => {
     <section className={styles.syncPanel}>
       <div className={styles.syncPanel__row}>
         <div>
-          <h1 className={styles.syncPanel__title}>Статистика Cavan</h1>
+          <h1 className={styles.syncPanel__title}>Статистика Cavan от Евы</h1>
           <p className={styles.syncPanel__meta}>
             {syncedAt
               ? `Данные обновлены ${formatDate(syncedAt)} в ${new Date(syncedAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
               : 'Данных пока нет — нажмите «Обновить данные».'}
           </p>
         </div>
-        <Button onClick={handleSync} disabled={!!progress || !canSync}>
-          {progress ? 'Обновляю…' : 'Обновить данные'}
-        </Button>
+        <div className={styles.syncPanel__actions}>
+          {dataset && (
+            <Button
+              variant="secondary"
+              onClick={() => handleSync(true)}
+              disabled={!!progress || !canSync}
+            >
+              Полное обновление
+            </Button>
+          )}
+          <Button
+            onClick={() => handleSync(false)}
+            disabled={!!progress || !canSync}
+          >
+            {progress ? 'Обновляю…' : 'Обновить данные'}
+          </Button>
+        </div>
       </div>
+      {dataset && !progress && (
+        <p className={styles.syncPanel__note}>
+          «Обновить данные» скачивает только новое: последние месяцы и новые
+          съёмки. «Полное обновление» заново скачивает всё — это дольше.
+        </p>
+      )}
 
       {!canSync && (
         <p className={styles.syncPanel__note}>
