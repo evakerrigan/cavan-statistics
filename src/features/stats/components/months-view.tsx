@@ -139,7 +139,7 @@ export const MonthsView = ({
         >
           <thead>
             <tr>
-              <th>{t('months.col.month')}</th>
+              <th className={styles.table__pinned}>{t('months.col.month')}</th>
               <th className={styles.table__num}>{t('col.sales')}</th>
               <th className={`${styles.table__num} ${styles.table__revenue}`}>
                 {t('col.revenue')}
@@ -157,7 +157,7 @@ export const MonthsView = ({
               .filter((m) => m.salesCount)
               .map((m) => (
                 <tr key={m.key}>
-                  <td>{formatMonth(m.key)}</td>
+                  <td className={styles.table__pinned}>{formatMonth(m.key)}</td>
                   <td className={styles.table__num}>{m.salesCount}</td>
                   <td
                     className={`${styles.table__num} ${styles.table__revenue}`}

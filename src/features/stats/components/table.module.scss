@@ -58,7 +58,7 @@
     // Pinned header: TableWrap moves the cells down while the page scrolls
     // past the table. An opaque background and z-index cover the rows below.
     position: relative;
-    z-index: 1;
+    z-index: 2;
     background: $color-surface;
     transform: translateY(var(--sticky-offset, 0));
   }
@@ -67,10 +67,37 @@
     background: $color-revenue-bg;
   }
 
+  // Pinned first column (shoot / photo preview, month): sticks to the left
+  // edge while the table scrolls sideways. Above the scrolled cells, below
+  // the pinned header; the corner cell is above both.
+  th.table__pinned,
+  td.table__pinned {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: $color-surface;
+  }
+
+  th.table__pinned {
+    z-index: 3;
+  }
+
   // Soft shadow under the header while it's pinned. Negative spread keeps it
   // from spilling sideways onto the neighbouring cells.
   thead[data-stuck] th {
     box-shadow: 0 6px 6px -6px var(--shadow-color-strong);
+  }
+
+  // Soft shadow on the right of the pinned column once the table is
+  // scrolled sideways (TableWrap sets `data-scrolled`).
+  [data-scrolled] & .table__pinned {
+    box-shadow: 6px 0 6px -6px var(--shadow-color-strong);
+  }
+
+  [data-scrolled] & thead[data-stuck] th.table__pinned {
+    box-shadow:
+      0 6px 6px -6px var(--shadow-color-strong),
+      6px 0 6px -6px var(--shadow-color-strong);
   }
 
   tbody tr:last-child td {

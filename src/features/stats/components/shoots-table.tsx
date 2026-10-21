@@ -101,7 +101,10 @@ export const ShootsTable = ({
       >
         <thead>
           <tr>
-            <th aria-label={t('col.preview')} />
+            <th
+              aria-label={t('col.preview')}
+              className={styles.table__pinned}
+            />
             <SortHeader label={t('col.shoot')} columnKey="title" {...header} />
             <StackedSortHeader
               columns={[
@@ -171,7 +174,7 @@ export const ShootsTable = ({
                   onClick={() => setOpenKey(isOpen ? null : key)}
                   aria-expanded={isOpen}
                 >
-                  <td>
+                  <td className={styles.table__pinned}>
                     {shoot.thumbUrl ? (
                       <img
                         src={shoot.thumbUrl}

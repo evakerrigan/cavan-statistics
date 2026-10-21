@@ -104,7 +104,10 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
           >
             <thead>
               <tr>
-                <th aria-label={t('col.preview')} />
+                <th
+                  aria-label={t('col.preview')}
+                  className={styles.table__pinned}
+                />
                 <SortHeader
                   label={t('photos.col.photo')}
                   columnKey="id"
@@ -154,7 +157,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
               )}
               {sorted.map((photo) => (
                 <tr key={photo.product.id}>
-                  <td>
+                  <td className={styles.table__pinned}>
                     <img
                       src={photo.product.thumbUrl}
                       alt=""

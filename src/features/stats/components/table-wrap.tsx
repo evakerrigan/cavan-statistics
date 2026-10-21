@@ -60,6 +60,10 @@ const useFloatingScrollbar = (
     const table = wrap?.querySelector('table');
     if (!wrap || !bar || !spacer || !table) return;
 
+    // Marks the wrapper once scrolled sideways: the pinned column gets a
+    // shadow then.
+    const markScrolled = () =>
+      wrap.toggleAttribute('data-scrolled', wrap.scrollLeft > 0);
     const measure = () => {
       const hidden = wrap.scrollWidth - wrap.clientWidth;
       bar.hidden = hidden < 1;
@@ -67,6 +71,7 @@ const useFloatingScrollbar = (
       // wrapper's border.
       spacer.style.width = `${bar.clientWidth + hidden}px`;
       bar.scrollLeft = wrap.scrollLeft;
+      markScrolled();
     };
     // The tolerance stops the two from bouncing fractional offsets back
     // and forth.
@@ -75,7 +80,11 @@ const useFloatingScrollbar = (
         to.scrollLeft = from.scrollLeft;
       }
     };
-    const onWrapScroll = follow(wrap, bar);
+    const followWrap = follow(wrap, bar);
+    const onWrapScroll = () => {
+      followWrap();
+      markScrolled();
+    };
     const onBarScroll = follow(bar, wrap);
 
     measure();
