@@ -254,3 +254,11 @@
     line-height: 1.25;
   }
 }
+
+// More than 10 partner columns (see isDensePartnerTable): narrower side
+// padding so the table still fits a 1600px screen.
+.table.table__dense th,
+.table.table__dense td {
+  padding-left: 6px;
+  padding-right: 6px;
+}

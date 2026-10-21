@@ -3,6 +3,7 @@ import { useI18n } from '@/hooks/use-i18n';
 import type { MessageKey } from '@/lib/i18n';
 import { formatMoney, formatMonth } from '@/utils/format';
 import type { MonthStat } from '../utils/aggregate';
+import { isDensePartnerTable } from '../utils/partner-columns';
 import { partnerLabel } from '../utils/shoot-labels';
 import { MonthsChart } from './months-chart';
 import { TableWrap } from './table-wrap';
@@ -133,7 +134,9 @@ export const MonthsView = ({
       />
 
       <TableWrap>
-        <table className={styles.table}>
+        <table
+          className={`${styles.table} ${isDensePartnerTable(partners, false) ? styles.table__dense : ''}`}
+        >
           <thead>
             <tr>
               <th>{t('months.col.month')}</th>

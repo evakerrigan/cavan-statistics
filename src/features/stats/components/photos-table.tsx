@@ -13,7 +13,10 @@ import {
   type ShootStat,
   UNMATCHED_KEY,
 } from '../utils/aggregate';
-import { partnerColumnCount } from '../utils/partner-columns';
+import {
+  isDensePartnerTable,
+  partnerColumnCount,
+} from '../utils/partner-columns';
 import { shootTitle } from '../utils/shoot-labels';
 import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { PhotoCards } from './photo-cards';
@@ -96,7 +99,9 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
         />
       ) : (
         <TableWrap>
-          <table className={styles.table}>
+          <table
+            className={`${styles.table} ${isDensePartnerTable(partners, compact) ? styles.table__dense : ''}`}
+          >
             <thead>
               <tr>
                 <th aria-label={t('col.preview')} />

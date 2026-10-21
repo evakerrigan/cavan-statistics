@@ -10,7 +10,10 @@ import { formatDate, formatDuration, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
-import { partnerColumnCount } from '../utils/partner-columns';
+import {
+  isDensePartnerTable,
+  partnerColumnCount,
+} from '../utils/partner-columns';
 import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
 import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { ShootCards } from './shoot-cards';
@@ -93,7 +96,9 @@ export const ShootsTable = ({
 
   return (
     <TableWrap>
-      <table className={styles.table}>
+      <table
+        className={`${styles.table} ${isDensePartnerTable(partners, compact) ? styles.table__dense : ''}`}
+      >
         <thead>
           <tr>
             <th aria-label={t('col.preview')} />
