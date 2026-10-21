@@ -5,6 +5,7 @@ import { formatMoney, formatMonth } from '@/utils/format';
 import type { MonthStat } from '../utils/aggregate';
 import { partnerLabel } from '../utils/shoot-labels';
 import { MonthsChart } from './months-chart';
+import { TableWrap } from './table-wrap';
 import styles from './table.module.scss';
 import chartStyles from './months-view.module.scss';
 
@@ -131,7 +132,7 @@ export const MonthsView = ({
         )}
       />
 
-      <div className={styles.tableWrap}>
+      <TableWrap>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -169,7 +170,7 @@ export const MonthsView = ({
               ))}
           </tbody>
         </table>
-      </div>
+      </TableWrap>
     </>
   );
 };

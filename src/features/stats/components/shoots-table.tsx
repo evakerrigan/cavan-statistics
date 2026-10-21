@@ -17,6 +17,7 @@ import { ShootCards } from './shoot-cards';
 import { ShootDetails } from './shoot-details';
 import { SortHeader, StackedSortHeader } from './sort-header';
 import { StackRow } from './stack-row';
+import { TableWrap } from './table-wrap';
 import styles from './table.module.scss';
 import shootStyles from './shoots-table.module.scss';
 
@@ -91,7 +92,7 @@ export const ShootsTable = ({
   }
 
   return (
-    <div className={styles.tableWrap}>
+    <TableWrap>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -246,6 +247,6 @@ export const ShootsTable = ({
           })}
         </tbody>
       </table>
-    </div>
+    </TableWrap>
   );
 };

@@ -9,7 +9,10 @@
 
 .table {
   width: 100%;
-  border-collapse: collapse;
+  // Separate borders: with collapsed ones the table paints the borders, and
+  // they'd stay behind when the pinned header cells move (see TableWrap).
+  border-collapse: separate;
+  border-spacing: 0;
 
   th,
   td {
@@ -24,6 +27,22 @@
     font-weight: 600;
     color: $color-text-secondary;
     white-space: nowrap;
+    // Pinned header: TableWrap moves the cells down while the page scrolls
+    // past the table. An opaque background and z-index cover the rows below.
+    position: relative;
+    z-index: 1;
+    background: $color-surface;
+    transform: translateY(var(--sticky-offset, 0));
+  }
+
+  th.table__revenue {
+    background: $color-revenue-bg;
+  }
+
+  // Soft shadow under the header while it's pinned. Negative spread keeps it
+  // from spilling sideways onto the neighbouring cells.
+  thead[data-stuck] th {
+    box-shadow: 0 6px 6px -6px var(--shadow-color-strong);
   }
 
   tbody tr:last-child td {
