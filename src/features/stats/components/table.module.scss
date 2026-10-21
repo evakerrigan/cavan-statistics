@@ -5,6 +5,34 @@
   border: 1px solid $color-border;
   border-radius: 8px;
   overflow-x: auto;
+  // Its own scrollbar is replaced by the floating one below (see TableWrap);
+  // wheel and trackpad scrolling still work.
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Holds the table and its floating scrollbar, so the scrollbar stays sticky
+// only while the table is on screen.
+.tableBox {
+  position: relative;
+}
+
+// Floating horizontal scrollbar: sticks to the bottom of the window while
+// the table is on screen, settles under the table at its end.
+.tableScrollbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: $color-main-bg;
+
+  &__spacer {
+    height: 1px;
+  }
 }
 
 .table {
