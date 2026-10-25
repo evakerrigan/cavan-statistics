@@ -11,6 +11,32 @@ const moneyFormats = {
 export const formatMoney = (value: number) =>
   moneyFormats[getActiveLanguage()].format(value);
 
+const wholeMoneyFormats = {
+  en: new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }),
+  ru: new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }),
+};
+
+/** Whole dollars, for chart axes: `$1,233` / `1 233 $` */
+export const formatMoneyShort = (value: number) =>
+  wholeMoneyFormats[getActiveLanguage()].format(value);
+
+const decimalFormats = {
+  en: new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }),
+  ru: new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 }),
+};
+
+/** `12.5` -> `12.5` / `12,5`; at most one decimal. */
+export const formatDecimal = (value: number) =>
+  decimalFormats[getActiveLanguage()].format(value);
+
 /** `2026-08-15` or a full ISO timestamp -> `08/15/2026` / `15.08.2026` */
 export const formatDate = (value: string | null) => {
   if (!value) return '—';

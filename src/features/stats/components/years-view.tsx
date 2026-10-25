@@ -3,14 +3,22 @@ import { useI18n } from '@/hooks/use-i18n';
 import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
 import {
   formatDate,
+  formatDecimal,
   formatDuration,
   formatMoney,
+  formatMoneyShort,
   formatMonths,
 } from '@/utils/format';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
 import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
-import { buildYearSales, buildYears, type YearStat } from '../utils/years';
+import {
+  buildYearSales,
+  saleAmount,
+  buildYears,
+  salesPerHundredPhotos,
+  type YearStat,
+} from '../utils/years';
 import { SortHeader, StackedSortHeader } from './sort-header';
 import { StackRow } from './stack-row';
 import { TableWrap } from './table-wrap';
@@ -29,6 +37,11 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
   const { t } = useI18n();
   const years = useMemo(() => buildYears(shoots), [shoots]);
   const yearSales = useMemo(() => buildYearSales(years), [years]);
+  const yearRevenue = useMemo(() => buildYearSales(years, saleAmount), [years]);
+  const perHundred = useMemo(
+    () => salesPerHundredPhotos(yearSales),
+    [yearSales]
+  );
   const [openYears, setOpenYears] = useState<Set<string>>(new Set());
 
   const accessors = useMemo<SortAccessors<YearStat>>(
@@ -162,7 +175,22 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
       {years.length > 0 && (
         <>
           <h2 className={yearStyles.chartTitle}>{t('years.chart.title')}</h2>
-          <YearsChart sales={yearSales} />
+          <YearsChart sales={yearSales} integer note={t('years.chart.note')} />
+          <h2 className={yearStyles.chartTitle}>{t('years.revenue.title')}</h2>
+          <YearsChart
+            sales={yearRevenue}
+            formatValue={formatMoney}
+            formatTick={formatMoneyShort}
+            note={t('years.revenue.note')}
+          />
+          <h2 className={yearStyles.chartTitle}>
+            {t('years.perHundred.title')}
+          </h2>
+          <YearsChart
+            sales={perHundred}
+            formatValue={formatDecimal}
+            note={t('years.perHundred.note')}
+          />
         </>
       )}
     </div>

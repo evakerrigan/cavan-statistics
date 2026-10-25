@@ -9,13 +9,26 @@ const lineColor = (index: number) => `var(--color-series-${index + 1})`;
 
 type YearsChartProps = {
   sales: YearSales;
+  /** Values are whole counts: use whole-number ticks. */
+  integer?: boolean;
+  formatValue?: (value: number) => string;
+  /** Axis ticks; the same as values by default. */
+  formatTick?: (value: number) => string;
+  /** Explanation under the chart. */
+  note: string;
 };
 
 /**
  * One line per upload year: how many sales its shoots made in each calendar
  * year. The current year isn't over yet, so its segment is dashed.
  */
-export const YearsChart = ({ sales }: YearsChartProps) => {
+export const YearsChart = ({
+  sales,
+  integer = false,
+  formatValue = String,
+  formatTick = formatValue,
+  note,
+}: YearsChartProps) => {
   const { t } = useI18n();
   const [hovered, setHovered] = useState<number | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
@@ -31,7 +44,7 @@ export const YearsChart = ({ sales }: YearsChartProps) => {
 
   const ticks = niceTicks(
     Math.max(0, ...shown.flatMap(({ line }) => line.values.map((v) => v ?? 0))),
-    true
+    integer
   );
   const axisMax = ticks[ticks.length - 1] || 1;
   const y = (value: number) => 100 - (value / axisMax) * 100;
@@ -80,7 +93,7 @@ export const YearsChart = ({ sales }: YearsChartProps) => {
             className={chartStyles.gridline}
             style={{ bottom: `${(tick / axisMax) * 100}%` }}
           >
-            <span className={chartStyles.tick}>{tick}</span>
+            <span className={chartStyles.tick}>{formatTick(tick)}</span>
           </div>
         ))}
 
@@ -145,6 +158,7 @@ export const YearsChart = ({ sales }: YearsChartProps) => {
             first point: the labels don't run into each other there. */}
         {shown.map(({ line }) => {
           const i = firstIndex(line);
+          if (i < 0) return null;
           return (
             <span
               key={line.year}
@@ -193,7 +207,7 @@ export const YearsChart = ({ sales }: YearsChartProps) => {
                             {label(line)}
                           </span>
                           <span className={styles.tooltipValue}>
-                            {line.values[i]}
+                            {formatValue(line.values[i]!)}
                           </span>
                         </div>
                       ))}
@@ -213,7 +227,7 @@ export const YearsChart = ({ sales }: YearsChartProps) => {
         ))}
       </div>
 
-      <p className={styles.note}>{t('years.chart.note')}</p>
+      <p className={styles.note}>{note}</p>
     </div>
   );
 };

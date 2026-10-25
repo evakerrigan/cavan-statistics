@@ -1,3 +1,4 @@
+import type { Sale } from '@/types/cavan';
 import { monthsSince } from '@/utils/format';
 import type { ShootStat } from './aggregate';
 
@@ -18,6 +19,8 @@ export type YearSalesLine = {
   year: string;
   /** Older upload years joined into one line: «2018 and earlier». */
   folded: boolean;
+  /** Photos in the line's shoots (see {@link YearStat.photoCount}). */
+  photoCount: number;
   /** Sales per calendar year (see {@link YearSales.saleYears}); `null` before the line starts. */
   values: (number | null)[];
 };
@@ -70,12 +73,18 @@ export const buildYears = (shoots: ShootStat[]): YearStat[] => {
     });
 };
 
+/** What a sale adds to its year: one sale, or its amount. */
+export const countSale = () => 1;
+export const saleAmount = (sale: Sale) => sale.amount;
+
 /**
- * How many sales the shoots of each upload year made in every calendar year,
- * to see how sales fade as shoots get older.
+ * How many sales (or how much money, with `measure` = {@link saleAmount}) the
+ * shoots of each upload year made in every calendar year, to see how sales
+ * fade as shoots get older.
  */
 export const buildYearSales = (
   years: YearStat[],
+  measure: (sale: Sale) => number = countSale,
   now = new Date()
 ): YearSales => {
   const oldestFirst = [...years].reverse();
@@ -93,7 +102,10 @@ export const buildYearSales = (
     for (const shoot of group.flatMap((y) => y.shoots)) {
       for (const sale of shoot.photos.flatMap((p) => p.sales)) {
         const year = Number(sale.date.slice(0, 4));
-        bySaleYear.set(year, (bySaleYear.get(year) ?? 0) + 1);
+        bySaleYear.set(
+          year,
+          round((bySaleYear.get(year) ?? 0) + measure(sale))
+        );
       }
     }
     // A sale can come before the upload year (joined shoots), so the line
@@ -111,9 +123,26 @@ export const buildYearSales = (
     lines: counted.map(({ group, bySaleYear, start }) => ({
       year: group[group.length - 1].year,
       folded: group.length > 1,
+      photoCount: group.reduce((sum, y) => sum + y.photoCount, 0),
       values: saleYears.map((y) =>
         Number(y) < start ? null : (bySaleYear.get(Number(y)) ?? 0)
       ),
     })),
   };
 };
+
+/**
+ * The same sales per 100 photos of each upload year, so years with more or
+ * fewer uploads compare fairly. A line without known photos stays empty.
+ */
+export const salesPerHundredPhotos = (sales: YearSales): YearSales => ({
+  saleYears: sales.saleYears,
+  lines: sales.lines.map((line) => ({
+    ...line,
+    values: line.values.map((v) =>
+      v === null || !line.photoCount
+        ? null
+        : Math.round((v / line.photoCount) * 1000) / 10
+    ),
+  })),
+});
