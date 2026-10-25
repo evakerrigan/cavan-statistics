@@ -127,6 +127,11 @@ export const en = {
   'years.avgOnSale': 'Avg. time on sale',
   'years.photos': 'Photos',
   'years.revenue': 'Lifetime revenue',
+  'years.chart.title': 'Sales per year by upload year',
+  'years.chart.earlier': '{year} and earlier',
+  'years.chart.partial': 'the year isn’t over yet',
+  'years.chart.note':
+    'Each line is the shoots uploaded in one year: how many sales they made in every calendar year. The dashed segment is the current year, which isn’t over yet. Click a year in the legend to hide its line.',
 
   'sort.by': 'Sort by',
   'sort.asc': 'Ascending',
@@ -272,6 +277,11 @@ export const ru: Messages = {
   'years.avgOnSale': 'В продаже в среднем',
   'years.photos': 'Фото в съёмках',
   'years.revenue': 'Доход за всё время',
+  'years.chart.title': 'Продажи по годам у съёмок каждого года загрузки',
+  'years.chart.earlier': '{year} и раньше',
+  'years.chart.partial': 'год ещё не закончился',
+  'years.chart.note':
+    'Каждая линия — съёмки, загруженные в один год: сколько продаж они принесли в каждом календарном году. Пунктир — текущий год, он ещё не закончился. Нажмите на год в легенде, чтобы скрыть его линию.',
 
   'sort.by': 'Сортировка',
   'sort.asc': 'По возрастанию',

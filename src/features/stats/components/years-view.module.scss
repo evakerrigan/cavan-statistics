@@ -4,6 +4,11 @@
   max-width: 1000px;
 }
 
+.chartTitle {
+  font-size: 1.25rem;
+  margin: $spacing-xl 0 $spacing-md 0;
+}
+
 .toggle {
   display: inline-flex;
   align-items: center;

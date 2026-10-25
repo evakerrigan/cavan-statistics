@@ -13,6 +13,25 @@ export type YearStat = {
   revenue: number;
 };
 
+export type YearSalesLine = {
+  /** Upload year; for a folded line, the newest of its years. */
+  year: string;
+  /** Older upload years joined into one line: «2018 and earlier». */
+  folded: boolean;
+  /** Sales per calendar year (see {@link YearSales.saleYears}); `null` before the line starts. */
+  values: (number | null)[];
+};
+
+export type YearSales = {
+  /** Every calendar year from the first upload or sale up to now. */
+  saleYears: string[];
+  /** Oldest upload year first. */
+  lines: YearSalesLine[];
+};
+
+/** Lines with their own colour; older upload years fold into the first. */
+export const MAX_YEAR_LINES = 8;
+
 const round = (n: number) => Math.round(n * 100) / 100;
 
 /**
@@ -49,4 +68,52 @@ export const buildYears = (shoots: ShootStat[]): YearStat[] => {
         revenue: round(yearShoots.reduce((sum, s) => sum + s.revenue, 0)),
       };
     });
+};
+
+/**
+ * How many sales the shoots of each upload year made in every calendar year,
+ * to see how sales fade as shoots get older.
+ */
+export const buildYearSales = (
+  years: YearStat[],
+  now = new Date()
+): YearSales => {
+  const oldestFirst = [...years].reverse();
+  const foldCount = Math.max(0, oldestFirst.length - (MAX_YEAR_LINES - 1));
+  const groups =
+    foldCount > 1
+      ? [
+          oldestFirst.slice(0, foldCount),
+          ...oldestFirst.slice(foldCount).map((y) => [y]),
+        ]
+      : oldestFirst.map((y) => [y]);
+
+  const counted = groups.map((group) => {
+    const bySaleYear = new Map<number, number>();
+    for (const shoot of group.flatMap((y) => y.shoots)) {
+      for (const sale of shoot.photos.flatMap((p) => p.sales)) {
+        const year = Number(sale.date.slice(0, 4));
+        bySaleYear.set(year, (bySaleYear.get(year) ?? 0) + 1);
+      }
+    }
+    // A sale can come before the upload year (joined shoots), so the line
+    // starts at whichever is first.
+    const start = Math.min(Number(group[0].year), ...bySaleYear.keys());
+    return { group, bySaleYear, start };
+  });
+
+  const first = Math.min(...counted.map((c) => c.start));
+  const saleYears: string[] = [];
+  for (let y = first; y <= now.getFullYear(); y++) saleYears.push(String(y));
+
+  return {
+    saleYears,
+    lines: counted.map(({ group, bySaleYear, start }) => ({
+      year: group[group.length - 1].year,
+      folded: group.length > 1,
+      values: saleYears.map((y) =>
+        Number(y) < start ? null : (bySaleYear.get(Number(y)) ?? 0)
+      ),
+    })),
+  };
 };

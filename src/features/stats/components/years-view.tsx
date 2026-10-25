@@ -10,10 +10,11 @@ import {
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
 import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
-import { buildYears, type YearStat } from '../utils/years';
+import { buildYearSales, buildYears, type YearStat } from '../utils/years';
 import { SortHeader, StackedSortHeader } from './sort-header';
 import { StackRow } from './stack-row';
 import { TableWrap } from './table-wrap';
+import { YearsChart } from './years-chart';
 import styles from './table.module.scss';
 import yearStyles from './years-view.module.scss';
 
@@ -27,6 +28,7 @@ const COLUMN_COUNT = 6;
 export const YearsView = ({ shoots }: YearsViewProps) => {
   const { t } = useI18n();
   const years = useMemo(() => buildYears(shoots), [shoots]);
+  const yearSales = useMemo(() => buildYearSales(years), [years]);
   const [openYears, setOpenYears] = useState<Set<string>>(new Set());
 
   const accessors = useMemo<SortAccessors<YearStat>>(
@@ -156,6 +158,13 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
           </tbody>
         </table>
       </TableWrap>
+
+      {years.length > 0 && (
+        <>
+          <h2 className={yearStyles.chartTitle}>{t('years.chart.title')}</h2>
+          <YearsChart sales={yearSales} />
+        </>
+      )}
     </div>
   );
 };
