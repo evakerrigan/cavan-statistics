@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useI18n } from '@/hooks/use-i18n';
 import { COMPACT_QUERY, useMediaQuery } from '@/hooks/use-media-query';
 import {
@@ -15,64 +15,153 @@ import { SortHeader, StackedSortHeader } from './sort-header';
 import { StackRow } from './stack-row';
 import { TableWrap } from './table-wrap';
 import styles from './table.module.scss';
-import tileStyles from './stats-view.module.scss';
 import yearStyles from './years-view.module.scss';
 
 type YearsViewProps = {
   shoots: ShootStat[];
 };
 
-/** One table per upload year, each with the year's totals above it. */
+const COLUMN_COUNT = 6;
+
+/** One row per upload year; a row opens the table of that year's shoots. */
 export const YearsView = ({ shoots }: YearsViewProps) => {
   const { t } = useI18n();
   const years = useMemo(() => buildYears(shoots), [shoots]);
+  const [openYears, setOpenYears] = useState<Set<string>>(new Set());
 
-  if (!years.length) {
-    return <p className={styles.table__empty}>{t('shoots.empty')}</p>;
-  }
+  const accessors = useMemo<SortAccessors<YearStat>>(
+    () => ({
+      year: (y) => y.year,
+      avgOnSale: (y) => y.avgMonthsOnSale ?? -1,
+      shoots: (y) => y.shoots.length,
+      photos: (y) => y.photoCount,
+      sales: (y) => y.salesCount,
+      revenue: (y) => y.revenue,
+    }),
+    []
+  );
+  const { sorted, sortKey, direction, toggle } = useSort(
+    years,
+    accessors,
+    'year'
+  );
+  const header = { sortKey, direction, onSort: toggle };
+
+  const toggleYear = (year: string) =>
+    setOpenYears((current) => {
+      const next = new Set(current);
+      if (!next.delete(year)) next.add(year);
+      return next;
+    });
+
   return (
-    <>
-      {years.map((year) => (
-        <YearSection key={year.year} year={year} />
-      ))}
-    </>
+    <div className={yearStyles.years}>
+      <TableWrap>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <SortHeader
+                label={t('years.col.year')}
+                columnKey="year"
+                className={styles.table__pinned}
+                {...header}
+              />
+              <SortHeader
+                label={t('years.avgOnSale')}
+                columnKey="avgOnSale"
+                numeric
+                {...header}
+              />
+              <SortHeader
+                label={t('stats.shoots')}
+                columnKey="shoots"
+                numeric
+                {...header}
+              />
+              <SortHeader
+                label={t('years.photos')}
+                columnKey="photos"
+                numeric
+                {...header}
+              />
+              <SortHeader
+                label={t('stats.sales')}
+                columnKey="sales"
+                numeric
+                {...header}
+              />
+              <SortHeader
+                label={t('years.revenue')}
+                columnKey="revenue"
+                numeric
+                className={styles.table__revenue}
+                {...header}
+              />
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.length === 0 && (
+              <tr>
+                <td colSpan={COLUMN_COUNT} className={styles.table__empty}>
+                  {t('shoots.empty')}
+                </td>
+              </tr>
+            )}
+            {sorted.map((year) => {
+              const isOpen = openYears.has(year.year);
+              return (
+                <Fragment key={year.year}>
+                  <tr
+                    className={styles.table__clickable}
+                    onClick={() => toggleYear(year.year)}
+                  >
+                    <td className={styles.table__pinned}>
+                      {/* Clicks bubble up to the row, which does the toggling. */}
+                      <button
+                        type="button"
+                        className={yearStyles.toggle}
+                        aria-expanded={isOpen}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`${yearStyles.arrow} ${isOpen ? yearStyles.arrowOpen : ''}`}
+                        />
+                        {year.year}
+                      </button>
+                    </td>
+                    <td className={styles.table__num}>
+                      {year.avgMonthsOnSale === null
+                        ? '—'
+                        : formatMonths(year.avgMonthsOnSale)}
+                    </td>
+                    <td className={styles.table__num}>{year.shoots.length}</td>
+                    <td className={styles.table__num}>{year.photoCount}</td>
+                    <td className={styles.table__num}>{year.salesCount}</td>
+                    <td
+                      className={`${styles.table__num} ${styles.table__revenue}`}
+                    >
+                      {formatMoney(year.revenue)}
+                    </td>
+                  </tr>
+                  {isOpen && (
+                    <tr>
+                      <td colSpan={COLUMN_COUNT} className={yearStyles.details}>
+                        <YearShootsTable shoots={year.shoots} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </TableWrap>
+    </div>
   );
 };
 
-const YearSection = ({ year }: { year: YearStat }) => {
-  const { t } = useI18n();
-  const tiles = [
-    {
-      label: t('years.avgOnSale'),
-      value:
-        year.avgMonthsOnSale === null
-          ? '—'
-          : formatMonths(year.avgMonthsOnSale),
-    },
-    { label: t('stats.shoots'), value: year.shoots.length },
-    { label: t('years.photos'), value: year.photoCount },
-    { label: t('stats.sales'), value: year.salesCount },
-    { label: t('years.revenue'), value: formatMoney(year.revenue) },
-  ];
-
-  return (
-    <section className={yearStyles.year}>
-      <h2 className={yearStyles.year__title}>{year.year}</h2>
-      <div className={tileStyles.tiles}>
-        {tiles.map((tile) => (
-          <div key={tile.label} className={tileStyles.tile}>
-            <div className={tileStyles.tile__label}>{tile.label}</div>
-            <div className={tileStyles.tile__value}>{tile.value}</div>
-          </div>
-        ))}
-      </div>
-      <YearTable shoots={year.shoots} />
-    </section>
-  );
-};
-
-/** The shoots table's main columns, without partners and details. */
-const YearTable = ({ shoots }: { shoots: ShootStat[] }) => {
+/** A year's shoots: the shoots table's main columns, without partners. */
+const YearShootsTable = ({ shoots }: { shoots: ShootStat[] }) => {
   const { t } = useI18n();
   const compact = useMediaQuery(COMPACT_QUERY);
 
@@ -99,14 +188,11 @@ const YearTable = ({ shoots }: { shoots: ShootStat[] }) => {
   const header = { sortKey, direction, onSort: toggle };
 
   return (
-    <TableWrap>
+    <div className={yearStyles.subtable}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th
-              aria-label={t('col.preview')}
-              className={styles.table__pinned}
-            />
+            <th aria-label={t('col.preview')} />
             <SortHeader label={t('col.shoot')} columnKey="title" {...header} />
             <StackedSortHeader
               columns={[
@@ -154,7 +240,7 @@ const YearTable = ({ shoots }: { shoots: ShootStat[] }) => {
         <tbody>
           {sorted.map((shoot) => (
             <tr key={shoot.key}>
-              <td className={styles.table__pinned}>
+              <td>
                 {shoot.thumbUrl ? (
                   <img
                     src={shoot.thumbUrl}
@@ -200,6 +286,6 @@ const YearTable = ({ shoots }: { shoots: ShootStat[] }) => {
           ))}
         </tbody>
       </table>
-    </TableWrap>
+    </div>
   );
 };

@@ -123,6 +123,7 @@ export const en = {
   'months.legendPortfolio': 'Photos in portfolio (right scale)',
   'months.tooltipPortfolio': 'in portfolio: {n}',
 
+  'years.col.year': 'Year',
   'years.avgOnSale': 'Avg. time on sale',
   'years.photos': 'Photos',
   'years.revenue': 'Lifetime revenue',
@@ -267,6 +268,7 @@ export const ru: Messages = {
   'months.legendPortfolio': 'Фото в портфеле (шкала справа)',
   'months.tooltipPortfolio': 'в портфеле: {n}',
 
+  'years.col.year': 'Год',
   'years.avgOnSale': 'В продаже в среднем',
   'years.photos': 'Фото в съёмках',
   'years.revenue': 'Доход за всё время',

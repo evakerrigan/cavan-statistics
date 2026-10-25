@@ -1,12 +1,43 @@
 @use '../../../styles/variables' as *;
 
-.year {
-  & + & {
-    margin-top: $spacing-xl;
-  }
+.years {
+  max-width: 1000px;
+}
 
-  &__title {
-    font-size: 1.5rem;
-    margin: 0 0 $spacing-sm 0;
-  }
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// A chevron drawn with two borders: points right, turns down when open.
+.arrow {
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid $color-text-secondary;
+  border-bottom: 2px solid $color-text-secondary;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+.arrowOpen {
+  transform: rotate(45deg);
+}
+
+// The opened year: its shoots indented from the left edge. Own stacking
+// context, so the outer header stays above the inner one when pinned.
+.details {
+  position: relative;
+  z-index: 0;
+  background: $color-main-bg;
+  padding: $spacing-sm $spacing-md $spacing-md $spacing-xl * 2 !important;
+}
+
+.subtable {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  overflow: hidden;
 }
