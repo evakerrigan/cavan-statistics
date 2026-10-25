@@ -87,7 +87,9 @@
 
 .tabs {
   display: flex;
-  gap: $spacing-lg;
+  // On a phone the tabs don't fit one row.
+  flex-wrap: wrap;
+  column-gap: $spacing-lg;
   border-bottom: 1px solid $color-border;
   margin: $spacing-lg 0 $spacing-md 0;
 }

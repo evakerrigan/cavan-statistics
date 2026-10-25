@@ -12,15 +12,20 @@ import { MonthsView } from './months-view';
 import { PhotosTable } from './photos-table';
 import { ShootsTable } from './shoots-table';
 import styles from './stats-view.module.scss';
+import { YearsView } from './years-view';
 
 type StatsViewProps = {
   dataset: Dataset;
 };
 
-const TABS: { id: 'shoots' | 'photos' | 'months'; label: MessageKey }[] = [
+const TABS: {
+  id: 'shoots' | 'photos' | 'months' | 'years';
+  label: MessageKey;
+}[] = [
   { id: 'shoots', label: 'tabs.shoots' },
   { id: 'photos', label: 'tabs.photos' },
   { id: 'months', label: 'tabs.months' },
+  { id: 'years', label: 'tabs.years' },
 ];
 
 type TabId = (typeof TABS)[number]['id'];
@@ -170,6 +175,7 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           portfolioDates={stats.portfolioDates}
         />
       )}
+      {tab === 'years' && <YearsView shoots={stats.shoots} />}
     </div>
   );
 };

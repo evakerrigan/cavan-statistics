@@ -1,0 +1,12 @@
+@use '../../../styles/variables' as *;
+
+.year {
+  & + & {
+    margin-top: $spacing-xl;
+  }
+
+  &__title {
+    font-size: 1.5rem;
+    margin: 0 0 $spacing-sm 0;
+  }
+}

@@ -47,6 +47,7 @@ export const en = {
   'tabs.shoots': 'By shoot',
   'tabs.photos': 'By photo',
   'tabs.months': 'By month',
+  'tabs.years': 'By upload year',
   'partner.other': 'Other',
   'shoot.unmatched': 'No shoot',
 
@@ -122,6 +123,10 @@ export const en = {
   'months.legendPortfolio': 'Photos in portfolio (right scale)',
   'months.tooltipPortfolio': 'in portfolio: {n}',
 
+  'years.avgOnSale': 'Avg. time on sale',
+  'years.photos': 'Photos',
+  'years.revenue': 'Lifetime revenue',
+
   'sort.by': 'Sort by',
   'sort.asc': 'Ascending',
   'sort.desc': 'Descending',
@@ -185,6 +190,7 @@ export const ru: Messages = {
   'tabs.shoots': 'По съёмкам',
   'tabs.photos': 'По фото',
   'tabs.months': 'По месяцам',
+  'tabs.years': 'По годам загрузки',
   'partner.other': 'Другое',
   'shoot.unmatched': 'Без съёмки',
 
@@ -260,6 +266,10 @@ export const ru: Messages = {
   'months.legendSales': 'Количество продаж',
   'months.legendPortfolio': 'Фото в портфеле (шкала справа)',
   'months.tooltipPortfolio': 'в портфеле: {n}',
+
+  'years.avgOnSale': 'В продаже в среднем',
+  'years.photos': 'Фото в съёмках',
+  'years.revenue': 'Доход за всё время',
 
   'sort.by': 'Сортировка',
   'sort.asc': 'По возрастанию',

@@ -72,16 +72,23 @@ const pluralRu = (n: number, one: string, few: string, many: string) => {
   return many;
 };
 
+/** Whole months from a date (`2026-08-15` or a full ISO timestamp) to `to`. */
+export const monthsSince = (from: string, to = new Date()) => {
+  const [y, m, d] = from.slice(0, 10).split('-').map(Number);
+  const months = (to.getFullYear() - y) * 12 + (to.getMonth() + 1 - m);
+  return to.getDate() < d ? months - 1 : months;
+};
+
 /**
  * Time since a date in whole months: `3 yr 5 mo` / `3 года 5 мес`,
  * `1 yr` / `1 год`, `7 mo` / `7 мес`.
  */
-export const formatDuration = (from: string | null, to = new Date()) => {
-  if (!from) return '—';
+export const formatDuration = (from: string | null, to = new Date()) =>
+  from ? formatMonths(monthsSince(from, to)) : '—';
+
+/** A number of months: `3 yr 5 mo` / `3 года 5 мес`. */
+export const formatMonths = (months: number) => {
   const ru = getActiveLanguage() === 'ru';
-  const [y, m, d] = from.slice(0, 10).split('-').map(Number);
-  let months = (to.getFullYear() - y) * 12 + (to.getMonth() + 1 - m);
-  if (to.getDate() < d) months -= 1;
   if (months < 1) return ru ? 'меньше месяца' : 'less than a month';
   const years = Math.floor(months / 12);
   const rest = months % 12;
