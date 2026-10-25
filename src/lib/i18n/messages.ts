@@ -135,7 +135,8 @@ export const en = {
   'years.chart.partial': 'the year isn’t over yet',
   'years.chart.note':
     'Each line is the shoots uploaded in one year: how many sales they made in every calendar year. The dashed segment is the current year, which isn’t over yet. Click a year in the legend to hide its line.',
-  'years.perHundred.title': 'Sales per year per 100 photos of each upload year',
+  'years.perHundred.title':
+    'Number of sales per year per 100 photos of each upload year',
   'years.perHundred.note':
     'The same sales divided by the number of photos uploaded that year, per 100 photos. This takes out the size of each year’s uploads, so the years compare fairly: a falling line means each photo sells less as it gets older.',
 
@@ -293,7 +294,8 @@ export const ru: Messages = {
   'years.chart.partial': 'год ещё не закончился',
   'years.chart.note':
     'Каждая линия — съёмки, загруженные в один год: сколько продаж они принесли в каждом календарном году. Пунктир — текущий год, он ещё не закончился. Нажмите на год в легенде, чтобы скрыть его линию.',
-  'years.perHundred.title': 'Продажи в год на 100 фото каждого года загрузки',
+  'years.perHundred.title':
+    'Количество продаж в год на 100 фото каждого года загрузки',
   'years.perHundred.note':
     'Те же продажи, делённые на количество фото, загруженных в этот год, — в расчёте на 100 фото. Так объём загрузок не влияет на картину и годы можно сравнивать между собой: если линия падает, каждое фото с возрастом продаётся хуже.',
 
