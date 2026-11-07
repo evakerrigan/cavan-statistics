@@ -40,6 +40,12 @@ export const en = {
   'stats.shoots': 'Shoots',
   'stats.perSold': 'Avg. per sold photo',
   'stats.perPortfolio': 'Per portfolio photo',
+  'stats.collection': 'Collection',
+  'stats.macro': 'Macro',
+  'stats.micro': 'Micro',
+  'stats.collectionSuccess': 'Collection success',
+  'stats.unknownCollection':
+    '{count} {count|sale|sales} worth {amount} {count|is|are} in neither the macro nor the micro row: their photos are not in the portfolio (for example, deleted photos or one-time payments).',
   'stats.mismatch':
     'Cavan shows lifetime earnings of {total}, but {collected} was collected ({diff} difference). Try updating again.',
   'stats.unmatched':
@@ -196,6 +202,12 @@ export const ru: Messages = {
   'stats.shoots': 'Съёмок',
   'stats.perSold': 'Ср. доход с проданного фото',
   'stats.perPortfolio': 'КПД на 1 фото портфеля',
+  'stats.collection': 'Коллекция',
+  'stats.macro': 'Макро',
+  'stats.micro': 'Микро',
+  'stats.collectionSuccess': 'Успешность коллекции',
+  'stats.unknownCollection':
+    'Продажи на {amount} (всего {count}) не вошли ни в макро, ни в микро: их фото нет в портфеле (например, фото удалены или это разовые выплаты).',
   'stats.mismatch':
     'Cavan показывает общий доход {total}, а собрано {collected} (разница {diff}). Попробуйте обновить данные ещё раз.',
   'stats.unmatched':

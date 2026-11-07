@@ -73,6 +73,23 @@ export type MonthStat = {
   byPartner: PartnerTotals;
 };
 
+/** Cavan's two price tiers. */
+export type Collection = 'macro' | 'micro';
+
+/** The overview totals for the images of one collection. */
+export type CollectionStat = {
+  collection: Collection;
+  revenue: number;
+  salesCount: number;
+  soldPhotos: number;
+  /** Images of this collection in the portfolio. */
+  publishedPhotos: number;
+  /** Shoots with at least one image of this collection. */
+  shoots: number;
+  revenuePerSoldPhoto: number | null;
+  revenuePerPortfolioPhoto: number | null;
+};
+
 export type Stats = {
   revenue: number;
   salesCount: number;
@@ -92,6 +109,10 @@ export type Stats = {
   cavanTotal: number;
   /** Go-live dates of the images in the portfolio, oldest first. */
   portfolioDates: string[];
+  /** Macro and micro apart; empty when the portfolio doesn't tell them. */
+  collections: CollectionStat[];
+  /** Sales whose collection is unknown: their image isn't in the portfolio. */
+  unknownCollection: { salesCount: number; revenue: number };
 };
 
 /** Partner key for sales without one; shown translated in the UI. */
@@ -197,6 +218,24 @@ export const matchProductsToShoots = (
 export const parseCavanFileName = (name: string | null) => {
   const m = /^(?:[A-Za-z]+_)?([A-Za-z0-9]+)-(\d+)-\d+/.exec(name ?? '');
   return m ? { code: m[1], itemId: Number(m[2]) } : null;
+};
+
+const COLLECTION_BY_ID: Record<number, Collection> = { 2: 'macro', 3: 'micro' };
+const COLLECTION_BY_PREFIX: Record<string, Collection> = {
+  CR: 'macro',
+  R: 'micro',
+};
+
+/**
+ * Macro or micro, from Cavan's collection ID or, for data synced before it
+ * was stored, from the file name prefix (`CR_` macro, `R_` micro).
+ */
+export const collectionOf = (item: PortfolioItem): Collection | null => {
+  if (item.collectionId != null) {
+    return COLLECTION_BY_ID[item.collectionId] ?? null;
+  }
+  const prefix = /^([A-Za-z]+)_/.exec(item.cavanFileName ?? '')?.[1];
+  return (prefix && COLLECTION_BY_PREFIX[prefix.toUpperCase()]) || null;
 };
 
 /** Values that map to exactly one shoot; ambiguous ones are dropped. */
@@ -586,6 +625,38 @@ export const buildStats = (
     }
   }
 
+  // Macro / micro
+  const photoById = new Map(finalPhotos.map((p) => [p.product.id, p]));
+  const collections = (['macro', 'micro'] as const)
+    .map((collection): CollectionStat => {
+      const items = portfolio.filter((i) => collectionOf(i) === collection);
+      const sold = items.flatMap((i) => {
+        const photo = photoById.get(i.id);
+        return photo?.sales.length ? [photo] : [];
+      });
+      const shootKeys = new Set(
+        items.map(
+          (i) =>
+            photoById.get(i.id)?.shootKey ??
+            merged.resolve(portfolioGroups.get(i.id)!)
+        )
+      );
+      const revenue = round(sold.reduce((sum, p) => sum + p.revenue, 0));
+      return {
+        collection,
+        revenue,
+        salesCount: sold.reduce((sum, p) => sum + p.sales.length, 0),
+        soldPhotos: sold.length,
+        publishedPhotos: items.length,
+        shoots: shootKeys.size,
+        revenuePerSoldPhoto: sold.length ? round(revenue / sold.length) : null,
+        revenuePerPortfolioPhoto: items.length
+          ? round(revenue / items.length)
+          : null,
+      };
+    })
+    .filter((c) => c.publishedPhotos > 0);
+
   const otherRevenue = round(otherSales.reduce((sum, s) => sum + s.amount, 0));
   const revenue = round(months.reduce((sum, m) => sum + m.revenue, 0));
   const soldPhotos = photos.filter((p) => p.sales.length).length;
@@ -612,5 +683,12 @@ export const buildStats = (
     otherRevenue,
     cavanTotal: dataset.cavanTotal,
     portfolioDates: portfolio.map((p) => p.createdAt).sort(),
+    collections,
+    unknownCollection: {
+      salesCount:
+        months.reduce((sum, m) => sum + m.salesCount, 0) -
+        collections.reduce((sum, c) => sum + c.salesCount, 0),
+      revenue: round(revenue - collections.reduce((s, c) => s + c.revenue, 0)),
+    },
   };
 };

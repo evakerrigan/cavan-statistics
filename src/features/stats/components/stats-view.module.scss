@@ -76,6 +76,65 @@
   }
 }
 
+// Macro and micro under the overview tiles: the same totals, one row each.
+.split {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: $spacing-md;
+
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: $spacing-sm $spacing-md;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    thead th {
+      font-size: 12px;
+      font-weight: 600;
+      color: $color-text-secondary;
+      border-bottom: 1px solid $color-border;
+    }
+
+    tbody tr + tr > * {
+      border-top: 1px solid $color-border;
+    }
+
+    tbody th {
+      font-weight: 600;
+      color: $color-text;
+    }
+
+    td {
+      color: $color-text;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__strong {
+    font-weight: 700;
+  }
+}
+
+@media (max-width: $breakpoint-compact) {
+  .split {
+    margin-bottom: $spacing-sm;
+
+    &__table {
+      th,
+      td {
+        padding: $spacing-xs $spacing-sm;
+      }
+    }
+  }
+}
+
 .notice {
   padding: $spacing-sm $spacing-md;
   background: $color-surface;

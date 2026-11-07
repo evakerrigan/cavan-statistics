@@ -41,6 +41,7 @@ type RawPortfolioResponse = {
     data: {
       id: number;
       shoot_id: number;
+      collection_id: number | null;
       file_name: string;
       original_file_name: string;
       headline: string;
@@ -151,6 +152,7 @@ export const fetchPortfolioPage = async (
       shootId: item.shoot_id,
       fileName: item.original_file_name,
       cavanFileName: item.file_name,
+      collectionId: item.collection_id,
       headline: item.headline,
       createdAt: item.created_at,
       thumbUrl: item.thumbnail,

@@ -8,6 +8,7 @@ import { useShootMerges } from '../hooks/use-shoot-merges';
 import { useShootTitles } from '../hooks/use-shoot-titles';
 import { buildStats } from '../utils/aggregate';
 import { partnerLabel } from '../utils/shoot-labels';
+import { CollectionRows } from './collection-rows';
 import { MonthsView } from './months-view';
 import { PhotosTable } from './photos-table';
 import { ShootsTable } from './shoots-table';
@@ -102,6 +103,16 @@ export const StatsView = ({ dataset }: StatsViewProps) => {
           </div>
         </div>
       </div>
+      <CollectionRows collections={stats.collections} />
+      {stats.collections.length > 0 &&
+        stats.unknownCollection.revenue >= 0.01 && (
+          <p className={styles.notice}>
+            {t('stats.unknownCollection', {
+              count: stats.unknownCollection.salesCount,
+              amount: formatMoney(stats.unknownCollection.revenue),
+            })}
+          </p>
+        )}
 
       <h2 className={styles.sectionTitle}>{t('stats.partnersTitle')}</h2>
       <div className={styles.tiles}>

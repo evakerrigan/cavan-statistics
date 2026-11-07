@@ -37,6 +37,21 @@ const decimalFormats = {
 export const formatDecimal = (value: number) =>
   decimalFormats[getActiveLanguage()].format(value);
 
+const percentFormats = {
+  en: new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  }),
+  ru: new Intl.NumberFormat('ru-RU', {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  }),
+};
+
+/** A share from 0 to 1: `0.6` -> `60%` / `60 %`; at most one decimal. */
+export const formatPercent = (share: number) =>
+  percentFormats[getActiveLanguage()].format(share);
+
 /** `2026-08-15` or a full ISO timestamp -> `08/15/2026` / `15.08.2026` */
 export const formatDate = (value: string | null) => {
   if (!value) return '—';

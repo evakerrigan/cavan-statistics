@@ -43,6 +43,11 @@ export type PortfolioItem = {
   fileName: string;
   /** File name on Cavan, e.g. `CR_KSLI210609-767409-01.jpg`. */
   cavanFileName: string;
+  /**
+   * Cavan's collection: `2` is macro (`CR_` files), `3` is micro (`R_`
+   * files). Missing in data synced before it was collected.
+   */
+  collectionId?: number | null;
   headline: string;
   createdAt: string;
   thumbUrl: string;
