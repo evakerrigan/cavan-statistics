@@ -1,13 +1,20 @@
 import type { Translate } from '@/lib/i18n';
-import { type ShootStat, UNKNOWN_PARTNER } from './aggregate';
+import { FREE_PARTNER, type ShootStat, UNKNOWN_PARTNER } from './aggregate';
 
 /** A shoot's name for display; «No shoot» is translated. */
 export const shootTitle = (shoot: ShootStat, t: Translate) =>
   shoot.kind === 'unmatched' ? t('shoot.unmatched') : shoot.title;
 
-/** A partner's name for display; sales without a partner show as «Other». */
+/**
+ * A partner's name for display; sales without a partner show as «Other»,
+ * sales synced without Pro as «Free».
+ */
 export const partnerLabel = (partner: string, t: Translate) =>
-  partner === UNKNOWN_PARTNER ? t('partner.other') : partner;
+  partner === UNKNOWN_PARTNER
+    ? t('partner.other')
+    : partner === FREE_PARTNER
+      ? t('partner.free')
+      : partner;
 
 /** The second line under a shoot's name: its code, kind or joined parts. */
 export const shootSubtitle = (shoot: ShootStat, t: Translate) => {

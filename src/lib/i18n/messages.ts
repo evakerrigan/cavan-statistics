@@ -56,6 +56,7 @@ export const en = {
   'tabs.months': 'By month',
   'tabs.years': 'By upload year',
   'partner.other': 'Other',
+  'partner.free': 'Free',
   'shoot.unmatched': 'No shoot',
 
   'col.preview': 'Preview',
@@ -219,6 +220,7 @@ export const ru: Messages = {
   'tabs.months': 'По месяцам',
   'tabs.years': 'По годам загрузки',
   'partner.other': 'Другое',
+  'partner.free': 'Free',
   'shoot.unmatched': 'Без съёмки',
 
   'col.preview': 'Превью',

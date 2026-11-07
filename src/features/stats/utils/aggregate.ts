@@ -9,6 +9,7 @@ import type {
   ShootPhoto,
   ShootTitles,
 } from '@/types/cavan';
+import { partnersByKey, saleKey } from '@/utils/sales';
 
 export type PartnerTotals = Record<string, number>;
 
@@ -117,6 +118,11 @@ export type Stats = {
 
 /** Partner key for sales without one; shown translated in the UI. */
 export const UNKNOWN_PARTNER = 'other';
+/**
+ * Partner key for sales synced without a Pro account: Cavan doesn't say
+ * which partner sold them. Shown translated in the UI.
+ */
+export const FREE_PARTNER = 'free';
 export const UNMATCHED_KEY = 'unmatched';
 
 export const cavanShootKey = (id: number) => `cavan:${id}`;
@@ -379,14 +385,35 @@ const portfolioToShootPhoto = (item: PortfolioItem): ShootPhoto => ({
   thumbUrl: item.thumbUrl,
 });
 
-/** Sales for one product: its full history, or the monthly rows as a fallback. */
-const salesForProduct = (product: Product, dataset: Dataset): Sale[] => {
-  if (product.sales.length) return product.sales;
-  return dataset.months.flatMap((m) =>
-    m.items
-      .filter((item) => item.productId === product.id)
-      .map((item) => ({ date: item.date, amount: item.amount, partner: null }))
+/**
+ * Sales for one product. The monthly reports are the source of truth for
+ * dates and amounts: without Pro, Cavan's product history is not this
+ * image's real sales (the same sample history comes back for every image).
+ * The history only adds the partner, to sales it matches by date and amount;
+ * a sale it doesn't list is «Free». A listed sale with no partner is «Other»
+ * only when the histories came from Pro (`proHistory`): without Pro the
+ * sample history may happen to list a sale, but still names no partner.
+ * Products missing from the monthly reports fall back to their history.
+ */
+const salesForProduct = (
+  product: Product,
+  dataset: Dataset,
+  proHistory: boolean
+): Sale[] => {
+  const monthly = dataset.months.flatMap((m) =>
+    m.items.filter((item) => item.productId === product.id)
   );
+  if (!monthly.length) return product.sales;
+
+  const partners = partnersByKey(product.sales);
+  return monthly.map((item) => {
+    const known = partners.get(saleKey(item.date, item.amount))?.shift();
+    return {
+      date: item.date,
+      amount: item.amount,
+      partner: known !== undefined && proHistory ? known : FREE_PARTNER,
+    };
+  });
 };
 
 export const buildStats = (
@@ -420,8 +447,12 @@ export const buildStats = (
       .map(([, match]) => match.itemId)
   );
 
+  // Partners exist only in histories synced with a Pro account.
+  const proHistory = dataset.products.some((p) =>
+    p.sales.some((s) => s.partner)
+  );
   const photos: PhotoStat[] = dataset.products.map((product) => {
-    const sales = salesForProduct(product, dataset);
+    const sales = salesForProduct(product, dataset, proHistory);
     const byPartner: PartnerTotals = {};
     for (const sale of sales) addTo(byPartner, partnerOf(sale), sale.amount);
     return {

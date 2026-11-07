@@ -4,8 +4,10 @@ import type {
   MonthSales,
   PortfolioItem,
   Product,
+  Sale,
   Shoot,
 } from '@/types/cavan';
+import { saleKey } from '@/utils/sales';
 import {
   type BatchSummary,
   fetchCompletedBatchPage,
@@ -125,6 +127,27 @@ const productIdsIn = (months: MonthSales[]) => [
   ),
 ];
 
+/**
+ * Keeps what an earlier update knew (e.g. while the account was on Pro):
+ * partners for sales that the fresh history doesn't name one for — without
+ * Pro, Cavan sends none — and sales the fresh history doesn't list at all,
+ * so they still count as known rather than «Free».
+ */
+const keepKnownPartners = (fresh: Product, previous?: Product): Product => {
+  const known = [...(previous?.sales ?? [])];
+  if (!known.length) return fresh;
+  const takeKnown = (sale: Sale) => {
+    const key = saleKey(sale.date, sale.amount);
+    const index = known.findIndex((k) => saleKey(k.date, k.amount) === key);
+    return index < 0 ? null : known.splice(index, 1)[0];
+  };
+  const sales = fresh.sales.map((sale) => {
+    const match = takeKnown(sale);
+    return sale.partner || !match ? sale : { ...sale, partner: match.partner };
+  });
+  return { ...fresh, sales: [...sales, ...known] };
+};
+
 export type CollectOptions = {
   /** Data from the previous update; enables a quick update. */
   previous: Dataset | null;
@@ -222,9 +245,10 @@ export const collectDataset = async (
     }
     months.sort((a, b) => monthIndex(a) - monthIndex(b));
 
-    // 3. Sales history (with partner) of every image that sold.
+    // 3. Sales history (with partner) of every image that sold. Partners
+    // known from earlier updates stay until the user asks for a full update.
     const productsById = new Map<number, Product>(
-      full ? [] : (previous?.products ?? []).map((p) => [p.id, p])
+      forceFull ? [] : (previous?.products ?? []).map((p) => [p.id, p])
     );
     for (let i = 0; i < changedProductIds.length; i++) {
       onProgress({
@@ -233,7 +257,12 @@ export const collectDataset = async (
         total: changedProductIds.length,
       });
       const product = await fetchProductHistory(session, changedProductIds[i]);
-      if (product) productsById.set(product.id, product);
+      if (product) {
+        productsById.set(
+          product.id,
+          keepKnownPartners(product, productsById.get(product.id))
+        );
+      }
     }
     const products = [...productsById.values()];
 
