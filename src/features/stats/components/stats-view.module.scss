@@ -117,8 +117,49 @@
     }
   }
 
+  // Below 900px: one table per collection, the collection name on top and the
+  // column names as row labels on the left, values on the right.
+  &__tableVertical {
+    thead th {
+      font-size: $font-size-base;
+      color: $color-text;
+    }
+
+    tbody th {
+      width: 100%;
+      font-size: 12px;
+      font-weight: 400;
+      color: $color-text-secondary;
+      white-space: normal;
+    }
+
+    td {
+      text-align: right;
+    }
+  }
+
   &__strong {
     font-weight: 700;
+  }
+}
+
+// The two vertical tables (below 900px): side by side, one under the other
+// only below 400px.
+.splitPair {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+
+  > .split {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 399px) {
+  .splitPair {
+    flex-direction: column;
   }
 }
 
