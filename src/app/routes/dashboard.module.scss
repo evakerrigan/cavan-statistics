@@ -2,7 +2,7 @@
 
 .dashboard {
   width: 100%;
-  max-width: 1600px;
+  max-width: $app-max-width;
 
   &__empty {
     padding: $spacing-xl;

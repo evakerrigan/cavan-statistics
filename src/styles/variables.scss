@@ -53,3 +53,6 @@ $breakpoint-xl: 1200px;
 // Below this width tables and summary tiles switch to a compact layout
 // (keep in sync with COMPACT_QUERY in hooks/use-media-query.ts).
 $breakpoint-compact: 1023px;
+
+// Widest the app content gets; the footer lines up with it.
+$app-max-width: 1600px;
