@@ -9,6 +9,7 @@ import {
   formatMoneyShort,
   formatMonths,
 } from '@/utils/format';
+import { useHiddenChartYears } from '../hooks/use-hidden-chart-years';
 import { type SortAccessors, useSort } from '../hooks/use-sort';
 import type { ShootStat } from '../utils/aggregate';
 import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
@@ -43,6 +44,11 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
     [yearSales]
   );
   const [openYears, setOpenYears] = useState<Set<string>>(new Set());
+  const hiddenYears = useHiddenChartYears();
+  const chartYears = (chart: string) => ({
+    hiddenYears: hiddenYears.value[chart] ?? [],
+    onToggleYear: (year: string) => hiddenYears.toggle(chart, year),
+  });
 
   const accessors = useMemo<SortAccessors<YearStat>>(
     () => ({
@@ -172,16 +178,23 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
         </table>
       </TableWrap>
 
-      {years.length > 0 && (
+      {/* Wait for the saved choice, so hidden years don't flash on load. */}
+      {years.length > 0 && hiddenYears.ready && (
         <>
           <h2 className={yearStyles.chartTitle}>{t('years.chart.title')}</h2>
-          <YearsChart sales={yearSales} integer note={t('years.chart.note')} />
+          <YearsChart
+            sales={yearSales}
+            integer
+            note={t('years.chart.note')}
+            {...chartYears('sales')}
+          />
           <h2 className={yearStyles.chartTitle}>{t('years.revenue.title')}</h2>
           <YearsChart
             sales={yearRevenue}
             formatValue={formatMoney}
             formatTick={formatMoneyShort}
             note={t('years.revenue.note')}
+            {...chartYears('revenue')}
           />
           <h2 className={yearStyles.chartTitle}>
             {t('years.perHundred.title')}
@@ -190,6 +203,7 @@ export const YearsView = ({ shoots }: YearsViewProps) => {
             sales={perHundred}
             formatValue={formatDecimal}
             note={t('years.perHundred.note')}
+            {...chartYears('perHundred')}
           />
         </>
       )}

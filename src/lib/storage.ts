@@ -1,5 +1,6 @@
 import type {
   Dataset,
+  HiddenChartYears,
   ManualShoot,
   ShootMerges,
   ShootTitles,
@@ -9,6 +10,7 @@ const DATASET_KEY = 'dataset';
 const MANUAL_SHOOTS_KEY = 'manualShoots';
 const SHOOT_TITLES_KEY = 'shootTitles';
 const SHOOT_MERGES_KEY = 'shootMerges';
+const HIDDEN_CHART_YEARS_KEY = 'hiddenChartYears';
 
 // Outside the extension (plain `npm run dev`) chrome.storage is unavailable,
 // so fall back to localStorage to keep the UI usable while developing.
@@ -58,9 +60,16 @@ export const loadShootMerges = async () =>
 export const saveShootMerges = (merges: ShootMerges) =>
   write(SHOOT_MERGES_KEY, merges);
 
+export const loadHiddenChartYears = async () =>
+  (await read<HiddenChartYears>(HIDDEN_CHART_YEARS_KEY)) ?? {};
+
+export const saveHiddenChartYears = (hidden: HiddenChartYears) =>
+  write(HIDDEN_CHART_YEARS_KEY, hidden);
+
 /**
  * Removes everything the extension keeps in this browser: synced data, the
- * user's own shoots, names and joins, and the theme / language choice.
+ * user's own shoots, names and joins, hidden chart years, and the theme /
+ * language choice.
  */
 export const clearAllData = async (): Promise<void> => {
   if (hasChromeStorage()) await chrome.storage.local.clear();

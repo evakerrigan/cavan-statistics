@@ -100,6 +100,12 @@ export type ShootTitles = Record<string, string>;
  */
 export type ShootMerges = Record<string, string>;
 
+/**
+ * Years the user switched off in the charts of the “By upload year” tab, as
+ * chart ID -> upload years.
+ */
+export type HiddenChartYears = Record<string, string[]>;
+
 export type Dataset = {
   /** ISO timestamp of the last successful sync. */
   syncedAt: string;

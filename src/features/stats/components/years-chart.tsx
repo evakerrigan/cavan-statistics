@@ -16,6 +16,9 @@ type YearsChartProps = {
   formatTick?: (value: number) => string;
   /** Explanation under the chart. */
   note: string;
+  /** Upload years switched off in the legend. */
+  hiddenYears: string[];
+  onToggleYear: (year: string) => void;
 };
 
 /**
@@ -28,11 +31,13 @@ export const YearsChart = ({
   formatValue = String,
   formatTick = formatValue,
   note,
+  hiddenYears,
+  onToggleYear,
 }: YearsChartProps) => {
   const { t } = useI18n();
   const [hovered, setHovered] = useState<number | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
-  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const hidden = new Set(hiddenYears);
 
   const { saleYears, lines } = sales;
   const n = saleYears.length;
@@ -55,12 +60,6 @@ export const YearsChart = ({
   const firstIndex = (line: YearSalesLine) =>
     line.values.findIndex((v) => v !== null);
 
-  const toggle = (year: string) =>
-    setHidden((current) => {
-      const next = new Set(current);
-      if (!next.delete(year)) next.add(year);
-      return next;
-    });
   const dimmed = (line: YearSalesLine) =>
     focused !== null && focused !== line.year ? styles.dimmed : '';
 
@@ -73,7 +72,7 @@ export const YearsChart = ({
             type="button"
             className={`${chartStyles.legend__item} ${styles.legendButton} ${hidden.has(line.year) ? styles.legendOff : ''}`}
             aria-pressed={!hidden.has(line.year)}
-            onClick={() => toggle(line.year)}
+            onClick={() => onToggleYear(line.year)}
             onMouseEnter={() => setFocused(line.year)}
             onMouseLeave={() => setFocused(null)}
           >
