@@ -15,6 +15,7 @@ import {
   partnerColumnCount,
 } from '../utils/partner-columns';
 import { shootSubtitle, shootTitle } from '../utils/shoot-labels';
+import { ShootMicroBadge } from './micro-badge';
 import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { ShootCards } from './shoot-cards';
 import { ShootDetails } from './shoot-details';
@@ -194,6 +195,7 @@ export const ShootsTable = ({
                           {t('shoots.badgeManual')}
                         </span>
                       )}
+                      <ShootMicroBadge shoot={shoot} />
                     </div>
                     <div className={styles.table__secondary}>
                       {shootSubtitle(shoot, t)}

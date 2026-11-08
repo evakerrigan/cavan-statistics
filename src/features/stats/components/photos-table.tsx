@@ -22,6 +22,7 @@ import { PartnerCells, PartnerHeaders } from './partner-columns';
 import { PhotoCards } from './photo-cards';
 import { SortHeader } from './sort-header';
 import { TableWrap } from './table-wrap';
+import { MicroBadge } from './micro-badge';
 import styles from './table.module.scss';
 import photoStyles from './photos-table.module.scss';
 
@@ -179,6 +180,7 @@ export const PhotosTable = ({ photos, shoots, partners }: PhotosTableProps) => {
                     <span className={styles.table__secondary}>
                       {photo.product.fileName}
                     </span>
+                    {photo.collection === 'micro' && <MicroBadge />}
                     <div className={styles.table__secondary}>
                       {photo.product.headline}
                     </div>

@@ -21,7 +21,12 @@ export type PhotoStat = {
   revenue: number;
   lastSale: string | null;
   byPartner: PartnerTotals;
+  /** Unknown when the image isn't in the portfolio. */
+  collection: Collection | null;
 };
+
+/** A published image with no sales. */
+export type UnsoldPhoto = ShootPhoto & { collection: Collection | null };
 
 /**
  * - `cavan`: a submission synced from Cavan
@@ -56,7 +61,7 @@ export type ShootStat = {
   /** Images with at least one sale. */
   photos: PhotoStat[];
   /** Published files with no sales (`cavan` and `legacy`). */
-  unsoldPhotos: ShootPhoto[];
+  unsoldPhotos: UnsoldPhoto[];
   salesCount: number;
   revenue: number;
   revenuePerPhoto: number | null;
@@ -377,13 +382,20 @@ const foldMerges = (shoots: ShootStat[], merges: ShootMerges) => {
   return { shoots: folded, resolve };
 };
 
-const portfolioToShootPhoto = (item: PortfolioItem): ShootPhoto => ({
+const portfolioToUnsoldPhoto = (item: PortfolioItem): UnsoldPhoto => ({
   itemId: item.id,
   fileName: item.fileName,
   headline: item.headline,
   publishedAt: item.createdAt,
   thumbUrl: item.thumbUrl,
+  collection: collectionOf(item),
 });
+
+/** Images of the shoot, sold or not, in the micro collection. */
+export const microPhotoCount = (shoot: ShootStat) =>
+  [...shoot.photos, ...shoot.unsoldPhotos].filter(
+    (p) => p.collection === 'micro'
+  ).length;
 
 /**
  * Sales for one product. The monthly reports are the source of truth for
@@ -451,6 +463,9 @@ export const buildStats = (
   const proHistory = dataset.products.some((p) =>
     p.sales.some((s) => s.partner)
   );
+  const collectionById = new Map(
+    portfolio.map((item) => [item.id, collectionOf(item)])
+  );
   const photos: PhotoStat[] = dataset.products.map((product) => {
     const sales = salesForProduct(product, dataset, proHistory);
     const byPartner: PartnerTotals = {};
@@ -462,6 +477,7 @@ export const buildStats = (
       revenue: round(sales.reduce((sum, s) => sum + s.amount, 0)),
       lastSale: sales.reduce<string | null>((d, s) => latest(d, s.date), null),
       byPartner,
+      collection: collectionById.get(product.id) ?? null,
     };
   });
   photos.sort((a, b) => b.revenue - a.revenue);
@@ -533,7 +549,7 @@ export const buildStats = (
   const unsoldInPortfolio = (key: string) =>
     (portfolioOf.get(key) ?? [])
       .filter((item) => !soldProductIds.has(item.id))
-      .map(portfolioToShootPhoto);
+      .map(portfolioToUnsoldPhoto);
 
   const shoots = dataset.shoots.map((shoot) => {
     const key = cavanShootKey(shoot.id);
@@ -552,7 +568,9 @@ export const buildStats = (
         publishedCount: inPortfolio || shoot.publishedCount,
         unsoldPhotos: inPortfolio
           ? unsoldInPortfolio(key)
-          : shoot.photos.filter((p) => !soldItemIds.has(p.itemId)),
+          : shoot.photos
+              .filter((p) => !soldItemIds.has(p.itemId))
+              .map((p) => ({ ...p, collection: null })),
       },
       photosOf(key)
     );

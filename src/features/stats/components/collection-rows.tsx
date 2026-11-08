@@ -61,7 +61,7 @@ export const CollectionRows = ({
       value: (c) => moneyOrDash(c.revenuePerSoldPhoto),
     },
     {
-      label: 'stats.perPortfolio',
+      label: 'stats.perCollection',
       value: (c) => moneyOrDash(c.revenuePerPortfolioPhoto),
     },
   ];

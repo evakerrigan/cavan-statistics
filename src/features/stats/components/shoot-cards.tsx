@@ -7,6 +7,7 @@ import type { ShootStat } from '../utils/aggregate';
 import { partnerSortKey } from '../utils/partner-columns';
 import { partnerLabel, shootSubtitle, shootTitle } from '../utils/shoot-labels';
 import { CardStat, RevenueBox } from './card-stat';
+import { ShootMicroBadge } from './micro-badge';
 import { ShootDetails } from './shoot-details';
 import type { SortState } from './sort-header';
 import { SortBar } from './sort-bar';
@@ -96,6 +97,7 @@ export const ShootCards = ({
                           {t('shoots.badgeManual')}
                         </span>
                       )}
+                      <ShootMicroBadge shoot={shoot} />
                     </div>
                     <div className={styles.table__secondary}>
                       {shootSubtitle(shoot, t)}

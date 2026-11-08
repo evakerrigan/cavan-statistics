@@ -8,6 +8,7 @@ import { CardStat, RevenueBox } from './card-stat';
 import type { SortState } from './sort-header';
 import { SortBar } from './sort-bar';
 import cardStyles from './cards.module.scss';
+import { MicroBadge } from './micro-badge';
 import styles from './table.module.scss';
 
 type PhotoCardsProps = SortState & {
@@ -76,6 +77,7 @@ export const PhotoCards = ({
                 <span className={styles.table__secondary}>
                   {photo.product.fileName}
                 </span>
+                {photo.collection === 'micro' && <MicroBadge />}
                 <div className={styles.table__secondary}>
                   {photo.product.headline}
                 </div>

@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { useI18n } from '@/hooks/use-i18n';
 import { CAVAN_ORIGIN } from '@/lib/cavan-client';
-import type { ManualShoot, ShootPhoto } from '@/types/cavan';
+import type { ManualShoot } from '@/types/cavan';
 import { formatDate, formatMoney } from '@/utils/format';
 import type { ManualShootsUpdate } from '../hooks/use-manual-shoots';
 import {
   isMergeable,
   type PhotoStat,
   type ShootStat,
+  type UnsoldPhoto,
 } from '../utils/aggregate';
 import {
   addToManualShoot,
@@ -18,6 +19,7 @@ import {
   removeFromManualShoot,
   renameManualShoot,
 } from '../utils/manual-shoots';
+import { MicroBadge } from './micro-badge';
 import styles from './shoot-details.module.scss';
 
 type ShootDetailsProps = {
@@ -64,12 +66,13 @@ const SoldCard = ({ photo }: { photo: PhotoStat }) => {
           n: photo.sales.length,
           date: formatDate(photo.lastSale),
         })}
+        {photo.collection === 'micro' && <MicroBadge />}
       </div>
     </a>
   );
 };
 
-const UnsoldCard = ({ photo }: { photo: ShootPhoto }) => {
+const UnsoldCard = ({ photo }: { photo: UnsoldPhoto }) => {
   const { t } = useI18n();
   return (
     <div className={`${styles.card} ${styles.cardUnsold}`}>
@@ -88,7 +91,10 @@ const UnsoldCard = ({ photo }: { photo: ShootPhoto }) => {
           {photo.fileName}
         </span>
       </div>
-      <div className={styles.card__meta}>{t('details.notSold')}</div>
+      <div className={styles.card__meta}>
+        {t('details.notSold')}
+        {photo.collection === 'micro' && <MicroBadge />}
+      </div>
     </div>
   );
 };
@@ -457,6 +463,7 @@ const EditableShootPhotos = ({
               </div>
               <div className={styles.card__meta} title={photo.product.fileName}>
                 {photo.product.fileName}
+                {photo.collection === 'micro' && <MicroBadge />}
               </div>
             </label>
           );
