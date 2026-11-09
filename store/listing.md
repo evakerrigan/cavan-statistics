@@ -71,7 +71,7 @@ Cavan shows sales month by month and photo by photo. This extension collects all
 
 • By shoot — revenue, sales, published and sold photos, revenue per photo, time on sale, split by partner agency. Open a shoot to see its sold photos, and the unsold ones in grey.
 • By photo — every photo that sold, with search and sorting by any column.
-• By month — revenue and number of sales per month, over the size of your portfolio, to see whether more photos mean more money.
+• By year/month — revenue per calendar year, plus revenue and number of sales per month, over the size of your portfolio, to see whether more photos mean more money.
 • Portfolio overview — total earnings, sales, photos sold, average per sold photo and per portfolio photo.
 
 Old uploads that aren't in Submit Content are grouped into their Cavan shoots automatically. You can rename shoots, join a shoot uploaded in several parts, and group leftover photos into your own shoots.
@@ -94,7 +94,7 @@ Cavan показывает продажи по месяцам и по отдел
 
 • По съёмкам — доход, продажи, опубликованные и проданные фото, доход на одно фото, срок в продаже, разбивка по партнёрским агентствам. Внутри съёмки — проданные фото, а непроданные серым.
 • По фото — все проданные фото с поиском и сортировкой по любой колонке.
-• По месяцам — доход и число продаж по месяцам на фоне размера портфеля: видно, растёт ли доход вместе с портфелем.
+• По годам/месяцам — доход за каждый календарный год, а также доход и число продаж по месяцам на фоне размера портфеля: видно, растёт ли доход вместе с портфелем.
 • Общая статистика — весь доход, продажи, проданные фото, средний доход с проданного фото и на одно фото портфеля.
 
 Старые загрузки, которых нет в Submit Content, сами собираются в свои съёмки Cavan. Съёмки можно переименовывать, объединять части одной фотосессии и собирать оставшиеся фото в свои съёмки.
